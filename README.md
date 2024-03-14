@@ -1,4 +1,4 @@
-# (Group) Oblivious Message Retrieval: proof of concept C++ implementation for (G)OMR
+# Group Oblivious Message Retrieval: proof of concept C++ implementation for GOMR
 
 
 ### Abstract:
