@@ -126,6 +126,8 @@ make
 make install
 
 # Optional
+# Notice that although we 'enable' hexl via command line, it does not take much real effect on GCP instances
+# and thus does not have much impact on our runtime
 cd $OMRDIR && git clone --branch 1.2.3 https://github.com/intel/hexl
 cd hexl
 cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$BUILDDIR
