@@ -102,27 +102,27 @@ wget https://github.com/ObliviousMessageRetrieval/ObliviousMessageRetrieval/raw/
 unzip PERFOMR_code.zip
 
 OMRDIR=~/OMR   # change build_path to where you want the dependency libraries installed
-LIBDIR=$OMRDIR/ObliviousMessageRetrieval/build
+BUILDDIR=$OMRDIR/ObliviousMessageRetrieval/build
 
 cd $OMRDIR && git clone -b v1.11.3 https://gitlab.com/palisade/palisade-release
 cd palisade-release
 mkdir build
 cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=$LIBDIR
+cmake .. -DCMAKE_INSTALL_PREFIX=$BUILDDIR
 make
 make install
 
 # Old OpenSSL used for plain AES function without EVP abstraction
 cd $OMRDIR && git clone -b OpenSSL_1_1_1-stable https://github.com/openssl/openssl
 cd openssl
-./config --prefix=$OMRDIR
+./config --prefix=$BUILDDIR
 make
 make install
 
 # Optional
 cd $OMRDIR && git clone --branch 1.2.3 https://github.com/intel/hexl
 cd hexl
-cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$LIBDIR
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$BUILDDIR
 cmake --build build
 cmake --install build
 
@@ -132,14 +132,14 @@ mkdir ../data/payloads
 mkdir ../data/clues
 mkdir ../data/cluePoly
 mkdir ../data/processedCM
-cmake .. -DCMAKE_PREFIX_PATH=$LIBDIR
+cmake .. -DCMAKE_PREFIX_PATH=$BUILDDIR
 make
 ```
 
 ### To Run
 
 ```
-cd $LIBDIR
+cd $BUILDDIR
 # to run our main PerfOMR construction: for example: ./OMRdemos perfomr1 2 32768 50
 sudo ./OMRdemos <perfomr1/perfomr2> <number_of_bundled_msgs> <number_of_transactions> <number_of_pert_msgs>
 
