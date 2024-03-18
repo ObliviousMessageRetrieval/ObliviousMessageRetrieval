@@ -63,7 +63,8 @@ This code implements PerfOMR schemes (PerfOMR1 in sec 5 and PerfOMR in sec 6) de
 - Measurement (with parameters in Section 7):
     - <img src="perfomr_measurement.png" alt="perfomr_measurement" width="800"/>
     - Detector run time scaling:
-        - <img src="perfomr_detector.png" alt="perfomr_detector" width="700"/>
+        - runtime vs. *ḱ* <img src="perfomr_runtime_k.png" alt="perfomr_runtime_k" width="700"/>
+        - runtime vs. *N* <img src="perfomr_runtime_N.png" alt="perfomr_runtime_N" width="700"/>
 
 
 ### Parameters Summary
