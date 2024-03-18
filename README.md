@@ -48,6 +48,7 @@ This code implements PerfOMR schemes (PerfOMR1 in sec 5 and PerfOMR in sec 6) de
 ### Oblivious Message Retrieval
 - Obliviously identify the pertinent messages and pack all their contents into a into a single digest.
 - Schemes benchmarked: OMR1p (Section 7.4) and OMR2p (Section 7.5) in [OMR](https://eprint.iacr.org/2021/1256.pdf)
+- Parameters: N = 2^19 (or *N* = 500,000 padded to 2^19), k = *ḱ* = 50, run on a Google Compute Cloud c2-standard-4instance type (4 hyperthreads of an Intel Xeon 3.10 GHz CPU with 16GB RAM)
 - Measurement: 
   - <img src="omr_measurement.png" alt="omr_measurement" width="400"/>
 
@@ -58,16 +59,17 @@ This code implements PerfOMR schemes (PerfOMR1 in sec 5 and PerfOMR in sec 6) de
 - Schemes benchmarked (in PerfOMR): 
     - main scheme PerfOMR1 (Section 5.3)
     - alternative scheme PerfOMR2 (Section 6)
+- Parameters: N = 2^19, 2^20, 2^21, k = *ḱ* = 50, 100, 150, run on a a Google Compute Cloud c2-standard-4instance type (4 hyperthreads of an Intel Xeon 3.10 GHz CPU with 16GB RAM)
 - Measurement (with parameters in Section 7):
     - <img src="perfomr_measurement.png" alt="perfomr_measurement" width="800"/>
-    - Detector run time:
+    - Detector run time scaling:
         - <img src="perfomr_detector.png" alt="perfomr_detector" width="700"/>
 
 
-### Parameters  
+### Parameters Summary
 - OMR: N = 2^19 (or *N* = 500,000 padded to 2^19), k = *ḱ* = 50. Benchmark results on a Google Compute Cloud c2-standard-4instance type (4 hyperthreads of an Intel Xeon 3.10 GHz CPU with 16GB RAM) are reported in Section 10 in [OMR paper](https://eprint.iacr.org/2021/1256.pdf).
 
-- PerfOMR: N = 2^19, 2^20, 2^21, k = *ḱ* = 50, 100, 150. Benchmark results on a Google Compute Cloud c2-standard-4instance type (4 hyperthreads of an Intel Xeon 3.10 GHz CPU with 16GB RAM) are reported in Section 7 in the submitted PerfOMR paper.
+- PerfOMR: N = 2^19, 2^20, 2^21, k = *ḱ* = 50, 100, 150. Benchmark results on a Google Compute Cloud c2-standard-4instance type (4 hyperthreads of an Intel Xeon 3.10 GHz CPU with 16GB RAM) are reported in Section 7 in the submitted [PerfOMR paper](https://eprint.iacr.org/2024/204.pdf).
 
 
 
@@ -77,10 +79,13 @@ The OMR library relies on the following:
 
 - C++ build environment
 - CMake build infrastructure
-- [SEAL](https://github.com/microsoft/SEAL) library 3.6 or 3.7 and all its dependencies (Notice that we made some manual change on SEAL interfaces to facilitate our implementation and thus a built-in dependency of SEAL is directly included under 'build' directory)
-- [PALISADE](https://gitlab.com/palisade/palisade-release) library release v1.11.2 and all its dependencies (as v1.11.2 is not publicly available anymore when this repository is made public, we use v1.11.3 in the instructions instead)
+- [SEAL](https://github.com/microsoft/SEAL) library 3.6 or 3.7 and all its dependencies \
+  Notice that we made some manual change on SEAL interfaces to facilitate our implementation and thus a built-in dependency of SEAL is directly included under 'build' directory.
+- [PALISADE](https://gitlab.com/palisade/palisade-release) library release v1.11.2 and all its dependencies,\
+  as v1.11.2 is not publicly available anymore when this repository is made public, we use v1.11.3 in the instructions instead.
 - [NTL](https://libntl.org/) library 11.4.3 and all its dependencies
-- [OpenSSL](https://github.com/openssl/openssl) library on branch OpenSSL_1_1_1-stable
+- [OpenSSL](https://github.com/openssl/openssl) library on branch OpenSSL_1_1_1-stable \
+   We use an old version of OpenSSL library for plain AES function without the complex EVP abstraction.
 - (Optional) [HEXL](https://github.com/intel/hexl) library 1.2.3
 
 ### Scripts to install the dependencies and build the binary
