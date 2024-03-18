@@ -1,4 +1,8 @@
-cmake_minimum_required (VERSION 3.5.1)
+cmake_minimum_required (VERSION 3.13)
+
+include(CheckCCompilerFlag)
+include(CheckCXXCompilerFlag)
+include(CMakePackageConfigHelpers)
 
 ### To use gcc/g++ on a Macintosh, you must set the Compilers
 ### here, not inside the project

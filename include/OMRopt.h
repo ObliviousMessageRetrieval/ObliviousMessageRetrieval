@@ -9,8 +9,6 @@
 #include <thread>
 
 void OMR3_opt() {
-    bool default_param_set = true;
-
     size_t poly_modulus_degree = poly_modulus_degree_glb;
     int t = 65537;
 
@@ -19,7 +17,6 @@ void OMR3_opt() {
 
     OMRthreeM = default_bucket_num_glb * (num_of_pertinent_msgs_glb / 50);
     repeatition_glb = OMRthreeM;
-    cout << OMRthreeM << ", " << repeatition_glb;
 
     // cout << "half_party_size: " << half_party_size << endl;
     int payload_size = 306;
@@ -61,10 +58,10 @@ void OMR3_opt() {
                                                                      60, 60, 60, 60,
                                                                      60, 60, 60});
     if (default_param_set) {
-        coeff_modulus = CoeffModulus::Create(poly_modulus_degree, { 40, 55, 60, 60,
+        coeff_modulus = CoeffModulus::Create(poly_modulus_degree, { 48, 55, 60, 60,
                                                                     60, 60, 60, 60,
                                                                     60, 60, 60, 60,
-                                                                    60, 60, 30, 60});
+                                                                    60, 60, 22, 60});
     }
     parms.set_coeff_modulus(coeff_modulus);
     parms.set_plain_modulus(t);
@@ -204,7 +201,7 @@ void OMR3_opt() {
 
     NTL_EXEC_RANGE(numcores, first, last);
     chrono::high_resolution_clock::time_point s1, e1;
-    int t11 = 0, t22 = 0, bb_to_pv = 0;
+    uint64_t t11 = 0, t22 = 0, bb_to_pv = 0;
     for(int i = first; i < last; i++){
         counter[i] = numOfTransactions/numcores*i;
         
@@ -376,9 +373,9 @@ void OMR3_opt() {
 	    unpack_pv_time += chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
             /* cout << "SlotToCoeff time: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl; */
             /* decryptor.decrypt(packSIC_coeff, pl); */
-            /* if (!default_param_set) { */
-            /*     evaluator.mod_switch_to_next_inplace(packSIC_coeff); */
-            /* } */
+            if (!default_param_set) {
+                evaluator.mod_switch_to_next_inplace(packSIC_coeff);
+            }
             /* cout << "** Noise after slotToCoeff: " << decryptor.invariant_noise_budget(packSIC_coeff) << endl; */
             /* cout << "SIC plaintext after slotToCoeff: ------------------------------ \n"; */
 	    /* decryptor.decrypt(packSIC_coeff, pl); */
@@ -464,7 +461,13 @@ void OMR3_opt() {
 
     //////// after switching to the last level, mod down to smaller q before sending the digest ////////
     uint64_t small_p = 268369920;
-    uint64_t large_p = 1099510054912;
+    
+    uint64_t large_p = 281474976317440;
+    /* uint64_t large_p = 1099510054912; */
+
+    if (!default_param_set) {
+      large_p = 1152921504581877760;
+    }
 
     //////////// for compact digest, mod the ciphertext to smaller q (60 --> 28 bit) and then return ////////////
     //////////// so recipient decrypts using a smaller key, and the BFV evaluation use the large key ////////////

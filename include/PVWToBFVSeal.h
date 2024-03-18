@@ -1119,9 +1119,9 @@ void FastRangeCheck_Random(SecretKey& sk, Ciphertext& output, const Ciphertext& 
     } else {
         vector<Ciphertext> kCTs(firstLevel), kToMCTs(secondLevel);
         calUptoDegreeK_bigPrime(kCTs, input, firstLevel, relin_keys, context, firstLevelMod, true);
-        cout << "   Noise after first level: " << decryptor.invariant_noise_budget(kCTs[kCTs.size()-1]) << " bits\n";
+        /* cout << "   Noise after first level: " << decryptor.invariant_noise_budget(kCTs[kCTs.size()-1]) << " bits\n"; */
         calUptoDegreeK_bigPrime(kToMCTs, kCTs[kCTs.size()-1], secondLevel, relin_keys, context, secondLevelMod, false);
-        cout << "   Noise after second level: " << decryptor.invariant_noise_budget(kToMCTs[kToMCTs.size()-1]) << " bits\n";
+        /* cout << "   Noise after second level: " << decryptor.invariant_noise_budget(kToMCTs[kToMCTs.size()-1]) << " bits\n"; */
 
         Ciphertext temp_relin(context);
 

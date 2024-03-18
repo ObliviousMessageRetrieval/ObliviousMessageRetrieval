@@ -11,7 +11,8 @@ using namespace seal;
 
 string AGOMR = "agomr";
 string FGOMR = "fgomr";
-string PERFOMR = "perfomr";
+string PERFOMR1 = "perfomr1";
+string PERFOMR2 = "perfomr2";
 
 int main(int argc, char* argv[]) {
     cout << "+------------------------------------+" << endl;
@@ -90,11 +91,18 @@ DEFAULT:
             selection = 31;
             party_size_glb = atoi(argv[2]);
             partial_size_glb = ceil(float(60 * party_size_glb + 128) / float(16) + party_size_glb + 1);
-	} else if (PERFOMR.compare(argv[1]) == 0) {
+	} else if (PERFOMR1.compare(argv[1]) == 0) {
 	    selection = 5;
+	    default_param_set = true;
 	    party_size_glb = atoi(argv[2]);
 	    numOfTransactions_glb = atoi(argv[3]);
 	    num_of_pertinent_msgs_glb = atoi(argv[4]);
+	} else if (PERFOMR2.compare(argv[1]) == 0) {
+	  selection = 5;
+	  default_param_set = false;
+	  party_size_glb = atoi(argv[2]);
+	  numOfTransactions_glb = atoi(argv[3]);
+	  num_of_pertinent_msgs_glb = atoi(argv[4]);
         } else {
             goto DEFAULT;
         }

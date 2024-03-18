@@ -233,12 +233,12 @@ vector<vector<long>> receiverDecoding(Ciphertext& lhsEnc, vector<vector<int>>& b
     // 1. find pertinent indices
     map<int, pair<int, int>> pertinentIndices;
     decodeIndices(pertinentIndices, lhsEnc, numOfTransactions, degree, secret_key, context, partySize);
-    cout << "Pertinent message indices found with its group PV value: " << endl;
-    for (map<int, pair<int, int>>::iterator it = pertinentIndices.begin(); it != pertinentIndices.end(); it++)
-    {
-        cout << it->first << "," << it->second.second << "  ";
-    }
-    cout << endl;
+    /* cout << "Pertinent message indices found with its group PV value: " << endl; */
+    /* for (map<int, pair<int, int>>::iterator it = pertinentIndices.begin(); it != pertinentIndices.end(); it++) */
+    /* { */
+    /*     cout << it->first << "," << it->second.second << "  "; */
+    /* } */
+    /* cout << endl; */
 
     // 2. forming rhs
     vector<vector<int>> rhs;
@@ -261,11 +261,11 @@ vector<vector<long>> receiverDecodingOMR3(vector<Ciphertext>& lhsCounter, vector
     // 1. find pertinent indices
     map<int, pair<int, int>> pertinentIndices;
     decodeIndicesRandom_opt(pertinentIndices, lhsCounter, secret_key, context, partySize, slot_per_bucket);
-    for (map<int, pair<int, int>>::iterator it = pertinentIndices.begin(); it != pertinentIndices.end(); it++)
-    {
-        cout << it->first << "," << it->second.second << "  ";
-    }
-    cout << std::endl;
+    /* for (map<int, pair<int, int>>::iterator it = pertinentIndices.begin(); it != pertinentIndices.end(); it++) */
+    /* { */
+    /*     cout << it->first << "," << it->second.second << "  "; */
+    /* } */
+    /* cout << std::endl; */
 
     // 2. forming rhs
     vector<vector<int>> rhs;
@@ -739,7 +739,7 @@ vector<vector<uint64_t>> preparingTransactionsFormal_opt(vector<int>& pertinentM
     }
 
     pertinentMsgIndices = p_reduced;
-
+    exp_pert = p_reduced;
 
     return ret;
 }

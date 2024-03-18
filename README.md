@@ -49,7 +49,7 @@ This code implements PerfOMR schemes (PerfOMR1 in sec 5 and PerfOMR in sec 6) de
 - Obliviously identify the pertinent messages and pack all their contents into a into a single digest.
 - Schemes benchmarked: OMR1p (Section 7.4) and OMR2p (Section 7.5) in [OMR](https://eprint.iacr.org/2021/1256.pdf)
 - Measurement: 
-  - <img src="omr_measurement.png" alt="omr_measurement" width="700"/>
+  - <img src="omr_measurement.png" alt="omr_measurement" width="400"/>
 
 
 
@@ -59,9 +59,9 @@ This code implements PerfOMR schemes (PerfOMR1 in sec 5 and PerfOMR in sec 6) de
     - main scheme PerfOMR1 (Section 5.3)
     - alternative scheme PerfOMR2 (Section 6)
 - Measurement (with parameters in Section 7):
-    - <img src="perfomr_measurement.png" alt="perfomr_measurement" width="700"/>
+    - <img src="perfomr_measurement.png" alt="perfomr_measurement" width="800"/>
     - Detector run time:
-<img src="perfomr_detector.png" alt="perfomr_detector" width="700"/>
+        - <img src="perfomr_detector.png" alt="perfomr_detector" width="700"/>
 
 
 ### Parameters  
@@ -95,12 +95,11 @@ sudo apt-get install libgmp3-dev # if no gmp
 sudo apt-get install libntl-dev=11.4.3-1build1 # if no ntl
 sudo apt-get install unzip # if no unzip
 
-# Now put PERFOMR_code.zip file is in ~/OMR
-# For example, if using GCP instance
-# Upload PERFOMR_code.zip and then do:
+# If you have the PERFOMR_code.zip directly, put it under ~/OMR and unzip it into ObliviousMessageRetrieval dir, otherwise:
 mkdir -p ~/OMR
-mv PERFOMR_code.zip ~/OMR
-cd ~/OMR && unzip PERFOMR_code.zip
+cd ~/OMR
+wget https://github.com/ObliviousMessageRetrieval/ObliviousMessageRetrieval/raw/perfomr/PERFOMR_code.zip
+unzip PERFOMR_code.zip
 
 OMRDIR=~/OMR   # change build_path to where you want the dependency libraries installed
 LIBDIR=$OMRDIR/ObliviousMessageRetrieval/build
@@ -111,21 +110,21 @@ mkdir build
 cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=$LIBDIR
 make
-sudo make install
+make install
 
 # Old OpenSSL used for plain AES function without EVP abstraction
 cd $OMRDIR && git clone -b OpenSSL_1_1_1-stable https://github.com/openssl/openssl
 cd openssl
-./config
+./config --prefix=$OMRDIR
 make
-sudo make install
+make install
 
 # Optional
 cd $OMRDIR && git clone --branch 1.2.3 https://github.com/intel/hexl
 cd hexl
 cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$LIBDIR
 cmake --build build
-sudo cmake --install build
+cmake --install build
 
 cd $OMRDIR/ObliviousMessageRetrieval/build
 mkdir ../data
@@ -133,17 +132,37 @@ mkdir ../data/payloads
 mkdir ../data/clues
 mkdir ../data/cluePoly
 mkdir ../data/processedCM
-sudo cmake .. -DCMAKE_PREFIX_PATH=$LIBDIR
-sudo make
+cmake .. -DCMAKE_PREFIX_PATH=$LIBDIR
+make
 ```
 
 ### To Run
 
 ```
 cd $LIBDIR
-# to run our main PerfOMR construction: for example: ./OMRdemos perfomr 2 32768 50
-sudo ./OMRdemos perfomr <number_of_bundled_msgs> <number_of_transactions> <number_of_pert_msgs>
+# to run our main PerfOMR construction: for example: ./OMRdemos perfomr1 2 32768 50
+sudo ./OMRdemos <perfomr1/perfomr2> <number_of_bundled_msgs> <number_of_transactions> <number_of_pert_msgs>
 
+```
+
+### To Reproduce the Main Benchmark Result
+- With fixed *ḱ* i.e., the number of pertinent messages), and demonstrate the runtime scaling with *N* (i.e., the number of transactions)
+```
+./OMRdemos perfomr1 8 65536 50
+./OMRdemos perfomr1 8 131072 50
+./OMRdemos perfomr1 8 262144 50
+./OMRdemos perfomr2 8 65536 50
+./OMRdemos perfomr2 8 131072 50
+./OMRdemos perfomr2 8 262144 50
+```
+- With fixed *N*, and demonstrate the runtime scaling with *ḱ*:
+```
+./OMRdemos perfomr1 8 65536 50
+./OMRdemos perfomr1 8 65536 100
+./OMRdemos perfomr1 8 65536 150
+./OMRdemos perfomr2 8 65536 50
+./OMRdemos perfomr2 8 65536 100
+./OMRdemos perfomr2 8 65536 150
 ```
 
 ### Sample Output

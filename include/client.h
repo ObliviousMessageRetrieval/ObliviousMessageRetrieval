@@ -7,22 +7,59 @@
 using namespace seal;
 #define PROFILE
 
+
+inline
+long power(long x, long y, long m)
+{
+  if (y == 0)
+    return 1;
+  long p = power(x, y / 2, m) % m;
+  p = (p * p) % m;
+
+  return (y % 2 == 0) ? p : (x * p) % m;
+}
+
+inline
+long modInverse(long a, long m)
+{
+  return power(a, m - 2, m);
+}
+
+inline
+long div_mod(long a, long b, long mod = 65537){
+  return (a*modInverse(b, mod)) % mod;
+}
+
 // consider index = 010100, partySize = 3, pv_value = 1, the final output would be 110
 // as each ceil(log2(partySize+1)) - bits will be mapped back to a single bit {1,0}
 // if any ceil(log2(partySize+1)) - bits pattern does not match the pv_value, collision detected
 int extractIndexWithoutCollision(uint128_t index, int partySize, int pv_value) {
     int res = 0, counter = 0;
 
+    int nearest_power_two = 1;
+    for (; nearest_power_two < partySize+1; nearest_power_two*=2) {}
+
     while (index) {
-        if (index & 1) {
-            res += 1 << counter;
-            if ((int) (index & 1) != pv_value)
-                return -1;
-        }
-        index = (uint128_t) (index >> max(1, (int) (ceil(log2(partySize+1)))));
-        counter++;
+      if (index % nearest_power_two) {
+	res += 1 << counter;
+	if ((int) (index % nearest_power_two) != pv_value)
+	  return -1;
+      }
+      index = (uint128_t) (index >> max(1, (int) (ceil(log2(partySize+1)))));
+      counter++;
     }
     return res;
+
+    // while (index) {
+    //     if (index & 1) {
+    //         res += 1 << counter;
+    //         if ((int) (index & 1) != pv_value)
+    //             return -1;
+    //     }
+    //     index = (uint128_t) (index >> max(1, (int) (ceil(log2(partySize+1)))));
+    //     counter++;
+    // }
+    // return res;
 }
 
 // Deterministic decoding for OMD
@@ -145,11 +182,16 @@ void decodeIndicesRandom_opt(map<int, pair<int, int>>& pertinentIndices, const v
         pvSumOfPertinentMsg += countertemp[i]; // first sum up the pv_values for all pertinent messages
     }
 
+    ofstream datafile;
+    datafile.open("../data/bucket.txt");
+
     for(int i = 0; i < (int) buckets.size(); i++){ // iterate through all ciphertexts
         vector<uint64_t> plain_bucket(poly_modulus_degree_glb);
         decryptor.decrypt(buckets[i], plain_result);
         batch_encoder.decode(plain_result, plain_bucket);
-        
+
+	datafile << plain_bucket << "\n";
+	
         for(int j = 0; j < (int) (poly_modulus_degree_glb / num_bucket_glb / slots_per_bucket); j++){ // iterate through all repetitions encryted in one ciphertext
             for(int k = 0; k < num_bucket_glb; k++) { // iterate through all buckets in one repetition
                 uint64_t pv_value = plain_bucket[j * slots_per_bucket * num_bucket_glb + (slots_per_bucket - 1) * num_bucket_glb + k]; // extract the counter value of this bucket
@@ -158,9 +200,12 @@ void decodeIndicesRandom_opt(map<int, pair<int, int>>& pertinentIndices, const v
                 if (pv_value >= 1) {
                     uint128_t index = 0;
                     for (int s = 0; s < (int) (slots_per_bucket-1); s++) {
-                        index = (uint128_t) (index * 65537 + plain_bucket[j * slots_per_bucket * num_bucket_glb + s * num_bucket_glb + k]);
+		        uint64_t curr_slot_value = plain_bucket[j * slots_per_bucket * num_bucket_glb + s * num_bucket_glb + k];
+			curr_slot_value = div_mod((long) curr_slot_value, (long) pv_value, 65537);
+                        index = (uint128_t) (index * 65537 + curr_slot_value);
+                        // index = (uint128_t) (index * 65537 + plain_bucket[j * slots_per_bucket * num_bucket_glb + s * num_bucket_glb + k]);
                     }
-                    int real_index = extractIndexWithoutCollision(index, partySize, pv_value);
+                    int real_index = extractIndexWithoutCollision(index, partySize, 1);
                     if(real_index != -1 && pertinentIndices.find(real_index) == pertinentIndices.end())
                     {
                         detectedSum += pv_value;
@@ -177,11 +222,11 @@ void decodeIndicesRandom_opt(map<int, pair<int, int>>& pertinentIndices, const v
     if(detectedSum != pvSumOfPertinentMsg)
     {
         cerr << "Overflow: detected pv sum: " << detectedSum << " less than expected: " << pvSumOfPertinentMsg << endl;
-        for (map<int, pair<int, int>>::iterator it = pertinentIndices.begin(); it != pertinentIndices.end(); it++)
-        {
-            cout << it->first << "," << it->second.second << "  ";
-        }
-        cout << std::endl;
+        // for (map<int, pair<int, int>>::iterator it = pertinentIndices.begin(); it != pertinentIndices.end(); it++)
+        // {
+        //     cout << it->first << "," << it->second.second << "  ";
+        // }
+        // cout << std::endl;
         exit(1);
     }
 }
@@ -236,28 +281,6 @@ void formLhsWeights(vector<vector<int>>& lhs, map<int, pair<int, int>>& pertinen
 
 // The following two functions are from: https://www.geeksforgeeks.org/multiplicative-inverse-under-modulo-m/
 // To compute x^y under modulo m
-inline
-long power(long x, long y, long m)
-{
-    if (y == 0)
-        return 1;
-    long p = power(x, y / 2, m) % m;
-    p = (p * p) % m;
- 
-    return (y % 2 == 0) ? p : (x * p) % m;
-}
-
-inline
-long modInverse(long a, long m)
-{
-    return power(a, m - 2, m);
-}
-
-inline
-long div_mod(long a, long b, long mod = 65537){
-    return (a*modInverse(b, mod)) % mod;
-}
-
 inline
 void mult_scalar_vec(vector<int>& output, const vector<int>& input, int k){
     output.resize(input.size());

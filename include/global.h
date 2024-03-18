@@ -2,8 +2,11 @@
 #include "seal/seal.h"
 using namespace seal;
 
+vector<int> exp_pert;
 int numcores = 4;
 int OMRtwoM = 100;
+
+bool default_param_set = true;
 
 // under default ring_dim = 53, payload_size = 306, each 2 byte, by concating two payloads together
 // we can tolerate ~53 bucket in one BFV ciphertext, and this can fit kbar = 50 pert msgs
@@ -28,7 +31,7 @@ vector<vector<int>> weights_glb;
 
 prng_seed_type seed_glb;
 size_t C_glb = 5;
-int numOfTransactions_glb = 32768;
+int numOfTransactions_glb = 65536;
 size_t poly_modulus_degree_glb = 32768;
 size_t num_of_pertinent_msgs_glb = 50;
 
@@ -42,7 +45,7 @@ uint64_t process_u_time = 0;
 // (8, 65536), (5, 131072) with prime = 786433
 int primitive_root = 3;
 
-int party_size_glb = 2;
+int party_size_glb = 8;
 int secure_extra_length_glb = 4; // T + secure_extra_length_glb = T', for a rand matrix to be full rank
 
 int id_size_glb = 19;
