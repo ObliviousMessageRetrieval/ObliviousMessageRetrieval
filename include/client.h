@@ -182,15 +182,15 @@ void decodeIndicesRandom_opt(map<int, pair<int, int>>& pertinentIndices, const v
         pvSumOfPertinentMsg += countertemp[i]; // first sum up the pv_values for all pertinent messages
     }
 
-    ofstream datafile;
-    datafile.open("../data/bucket.txt");
+    // ofstream datafile;
+    // datafile.open("../data/bucket.txt");
 
     for(int i = 0; i < (int) buckets.size(); i++){ // iterate through all ciphertexts
         vector<uint64_t> plain_bucket(poly_modulus_degree_glb);
         decryptor.decrypt(buckets[i], plain_result);
         batch_encoder.decode(plain_result, plain_bucket);
 
-	datafile << plain_bucket << "\n";
+	// datafile << plain_bucket << "\n";
 	
         for(int j = 0; j < (int) (poly_modulus_degree_glb / num_bucket_glb / slots_per_bucket); j++){ // iterate through all repetitions encryted in one ciphertext
             for(int k = 0; k < num_bucket_glb; k++) { // iterate through all buckets in one repetition
