@@ -80,7 +80,7 @@ The OMR library relies on the following:
 
 - C++ build environment
 - CMake build infrastructure
-- [SEAL](https://github.com/microsoft/SEAL) library 3.6 or 3.7 and all its dependencies \
+- [SEAL](https://github.com/microsoft/SEAL) library 4.1 and all its dependencies \
   Notice that we made some manual change on SEAL interfaces to facilitate our implementation and thus a built-in dependency of SEAL is directly included under 'build' directory.
 - [PALISADE](https://gitlab.com/palisade/palisade-release) library release v1.11.2 and all its dependencies,\
   as v1.11.2 is not publicly available anymore when this repository is made public, we use v1.11.3 in the instructions instead.
@@ -148,29 +148,34 @@ make
 
 ```
 cd $BUILDDIR
-# to run our main PerfOMR construction: for example: ./OMRdemos perfomr1 2 32768 50
-sudo ./OMRdemos <perfomr1/perfomr2> <number_of_bundled_msgs> <number_of_transactions> <number_of_pert_msgs>
+# to run our main PerfOMR construction: for example: ./OMRdemos perfomr1 1 2 32768 50
+./OMRdemos <perfomr1/perfomr2> <number_of_cores> <number_of_messages_in_bundle> <number_of_bundles> <number_of_pert_msgs>
 
 ```
 
 ### To Reproduce the Main Benchmark Result
 - With fixed *ḱ* i.e., the number of pertinent messages), and demonstrate the runtime scaling with *N* (i.e., the number of transactions)
 ```
-./OMRdemos perfomr1 8 65536 50
-./OMRdemos perfomr1 8 131072 50
-./OMRdemos perfomr1 8 262144 50
-./OMRdemos perfomr2 8 65536 50
-./OMRdemos perfomr2 8 131072 50
-./OMRdemos perfomr2 8 262144 50
+./OMRdemos perfomr1 1 8 65536 50 
+./OMRdemos perfomr1 1 8 131072 50
+./OMRdemos perfomr1 1 8 262144 50
+./OMRdemos perfomr2 1 8 65536 50
+./OMRdemos perfomr2 1 8 131072 50
+./OMRdemos perfomr2 1 8 262144 50
 ```
 - With fixed *N*, and demonstrate the runtime scaling with *ḱ*:
 ```
-./OMRdemos perfomr1 8 65536 50
-./OMRdemos perfomr1 8 65536 100
-./OMRdemos perfomr1 8 65536 150
-./OMRdemos perfomr2 8 65536 50
-./OMRdemos perfomr2 8 65536 100
-./OMRdemos perfomr2 8 65536 150
+./OMRdemos perfomr1 1 8 65536 50
+./OMRdemos perfomr1 1 8 65536 100
+./OMRdemos perfomr1 1 8 65536 150
+./OMRdemos perfomr2 1 8 65536 50
+./OMRdemos perfomr2 1 8 65536 100
+./OMRdemos perfomr2 1 8 65536 150
+```
+- To demonstrate the runtime under multicore (2 cores):
+```
+./OMRdemos perfomr1 2 8 65536 50
+./OMRdemos perfomr2 2 8 65536 50
 ```
 
 ### Sample Output
