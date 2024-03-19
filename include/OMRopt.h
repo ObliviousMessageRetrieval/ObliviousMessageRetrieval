@@ -58,7 +58,7 @@ void OMR3_opt() {
                                                                      60, 60, 60, 60,
                                                                      60, 60, 60});
     if (default_param_set) {
-        coeff_modulus = CoeffModulus::Create(poly_modulus_degree, { 48, 55, 60, 60,
+        coeff_modulus = CoeffModulus::Create(poly_modulus_degree, { 60, 55, 60, 60,
                                                                     60, 60, 60, 60,
                                                                     60, 60, 60, 60,
                                                                     60, 60, 22, 60});
@@ -460,14 +460,15 @@ void OMR3_opt() {
     /* cout << "Digest size: " << digsize << " bytes" << endl; */
 
     //////// after switching to the last level, mod down to smaller q before sending the digest ////////
-    uint64_t small_p = 268369920;
+    uint64_t small_p = 268369920; // for 28 last noise level
     
-    uint64_t large_p = 281474976317440;
-    /* uint64_t large_p = 1099510054912; */
+    // uint64_t large_p = 281474976317440; // for 48
+    // uint64_t large_p = 36028797014704128; // for 55
+    /* uint64_t large_p = 1099510054912; // for 40 */
 
-    if (!default_param_set) {
-      large_p = 1152921504581877760;
-    }
+    // if (!default_param_set) {
+    uint64_t large_p = 1152921504581877760; // for 60
+    // }
 
     //////////// for compact digest, mod the ciphertext to smaller q (60 --> 28 bit) and then return ////////////
     //////////// so recipient decrypts using a smaller key, and the BFV evaluation use the large key ////////////
@@ -555,7 +556,7 @@ void OMR3_opt() {
     for(size_t q = 0; q < lhs_multi_ctr[0].size(); q++){
         digsize += lhs_multi_ctr[0][q].save(data_streamdg2);
     }
-    cout << "Digest size: " << digsize << " bytes" << endl;
+    // cout << "Digest size: " << digsize << " bytes" << endl;
 
     // step 5. receiver decoding
     bipartiteGraphWeightsGeneration(bipartite_map_glb, weights_glb, numOfTransactions, OMRthreeM, repeatition_glb, seed_glb);
@@ -564,7 +565,7 @@ void OMR3_opt() {
                                              numOfTransactions, party_size_glb, half_party_size, acc_slots+1, payload_size*2);
     time_end = chrono::high_resolution_clock::now();
     time_diff = chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-    cout << "\nRecipient running time: " << time_diff.count() << " us." << "\n";
+    // cout << "\nRecipient running time: " << time_diff.count() << " us." << "\n";
 
     /* cout << "EXPECTED -------------------------------------------------------- \n" << expected << endl; */
     /* cout << "RESULT ---------------------------------------------------------- \n" << res << endl; */
