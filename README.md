@@ -104,7 +104,7 @@ sudo apt-get install unzip # if no unzip
 # If you have the PERFOMR_code.zip directly, put it under ~/OMR and unzip it into ObliviousMessageRetrieval dir, otherwise:
 mkdir -p ~/OMR
 cd ~/OMR
-wget https://github.com/ObliviousMessageRetrieval/ObliviousMessageRetrieval/raw/perfomr/PERFOMR_code.zip
+wget https://github.com/ObliviousMessageRetrieval/ObliviousMessageRetrieval/raw/usenix_artifact/PERFOMR_code.zip
 unzip PERFOMR_code.zip
 
 OMRDIR=~/OMR   # change build_path to where you want the dependency libraries installed
