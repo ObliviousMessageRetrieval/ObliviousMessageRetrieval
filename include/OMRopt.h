@@ -92,45 +92,45 @@ void OMR3_opt() {
     Decryptor decryptor(context, secret_key);
     BatchEncoder batch_encoder(context);
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////// for digest compression ///////////////////////////////////////////////////////////
+ //    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //    //////////////////////////////////////// for digest compression ///////////////////////////////////////////////////////////
 
-    EncryptionParameters bfv_params_small(scheme_type::bfv);
-    bfv_params_small.set_poly_modulus_degree(degree);
-    auto coeff_modulus_small = CoeffModulus::Create(degree, { 28, 60});
-    bfv_params_small.set_coeff_modulus(coeff_modulus_small);
-    bfv_params_small.set_plain_modulus(t);
+ //    EncryptionParameters bfv_params_small(scheme_type::bfv);
+ //    bfv_params_small.set_poly_modulus_degree(degree);
+ //    auto coeff_modulus_small = CoeffModulus::Create(degree, { 28, 60});
+ //    bfv_params_small.set_coeff_modulus(coeff_modulus_small);
+ //    bfv_params_small.set_plain_modulus(t);
 
-    bfv_params_small.set_random_generator(rng);
-    SEALContext seal_context_small(bfv_params_small, true, sec_level_type::none);
-    KeyGenerator keygen_small(seal_context_small);
+ //    bfv_params_small.set_random_generator(rng);
+ //    SEALContext seal_context_small(bfv_params_small, true, sec_level_type::none);
+ //    KeyGenerator keygen_small(seal_context_small);
 
-    SecretKey secret_key_small = keygen_small.secret_key();
+ //    SecretKey secret_key_small = keygen_small.secret_key();
 
-    uint64_t small_p = 268369920;
-    uint64_t large_p = 281474976317440;
-    // below is for confirming the above two primes
-    inverse_ntt_negacyclic_harvey(secret_key.data().data(), context.key_context_data()->small_ntt_tables()[0]);
-    for (int i = 0; i < params.n; i++) {
-        if (secret_key.data()[i] > 1) { //-1, which is p-1, where p is prime of the last level in coeff modulus
-            large_p = (uint64_t) secret_key.data()[i];
-	}
-    }
-    seal::util::RNSIter new_key_rns(secret_key.data().data(), degree);
-    ntt_negacyclic_harvey(new_key_rns, coeff_modulus.size(), context.key_context_data()->small_ntt_tables());
+ //    uint64_t small_p = 268369920;
+ //    uint64_t large_p = 281474976317440;
+ //    // below is for confirming the above two primes
+ //    inverse_ntt_negacyclic_harvey(secret_key.data().data(), context.key_context_data()->small_ntt_tables()[0]);
+ //    for (int i = 0; i < params.n; i++) {
+ //        if (secret_key.data()[i] > 1) { //-1, which is p-1, where p is prime of the last level in coeff modulus
+ //            large_p = (uint64_t) secret_key.data()[i];
+	// }
+ //    }
+ //    seal::util::RNSIter new_key_rns(secret_key.data().data(), degree);
+ //    ntt_negacyclic_harvey(new_key_rns, coeff_modulus.size(), context.key_context_data()->small_ntt_tables());
 
-    inverse_ntt_negacyclic_harvey(secret_key_small.data().data(), seal_context_small.key_context_data()->small_ntt_tables()[0]);
-    for (int i = 0; i < params.n; i++) {
-        if (secret_key_small.data()[i] > 1) {
-            small_p = (uint64_t) secret_key_small.data()[i];
-	}
-    }
-    cout << endl;
-    seal::util::RNSIter new_key_rns_small(secret_key_small.data().data(), degree);
-    ntt_negacyclic_harvey(new_key_rns_small, coeff_modulus_small.size(), seal_context_small.key_context_data()->small_ntt_tables());
+ //    inverse_ntt_negacyclic_harvey(secret_key_small.data().data(), seal_context_small.key_context_data()->small_ntt_tables()[0]);
+ //    for (int i = 0; i < params.n; i++) {
+ //        if (secret_key_small.data()[i] > 1) {
+ //            small_p = (uint64_t) secret_key_small.data()[i];
+	// }
+ //    }
+ //    cout << endl;
+ //    seal::util::RNSIter new_key_rns_small(secret_key_small.data().data(), degree);
+ //    ntt_negacyclic_harvey(new_key_rns_small, coeff_modulus_small.size(), seal_context_small.key_context_data()->small_ntt_tables());
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     for (int i = 0; i < params.n; i++) {
         sk[i] = sk[i] == params.q-1 ? 65536 : sk[i];
@@ -511,7 +511,43 @@ void OMR3_opt() {
     /* cout << "Digest size: " << digsize << " bytes" << endl; */
 
     //////////// for compact digest, mod the ciphertext to smaller q (60 --> 28 bit) and then return ////////////
-    //////////// so recipient decrypts using a smaller key, and the BFV evaluation use the large key ////////////    
+    //////////// so recipient decrypts using a smaller key, and the BFV evaluation use the large key //////////// 
+    EncryptionParameters bfv_params_small(scheme_type::bfv);
+    bfv_params_small.set_poly_modulus_degree(degree);
+    auto coeff_modulus_small = CoeffModulus::Create(degree, { 28, 60});
+    bfv_params_small.set_coeff_modulus(coeff_modulus_small);
+    bfv_params_small.set_plain_modulus(t);
+
+    bfv_params_small.set_random_generator(rng);
+    SEALContext seal_context_small(bfv_params_small, true, sec_level_type::none);
+    KeyGenerator keygen_small(seal_context_small);
+
+    SecretKey secret_key_small = keygen_small.secret_key();
+
+    uint64_t small_p = 268369920;
+    uint64_t large_p = 281474976317440;
+    // below is for confirming the above two primes
+    inverse_ntt_negacyclic_harvey(secret_key.data().data(), context.key_context_data()->small_ntt_tables()[0]);
+    for (int i = 0; i < params.n; i++) {
+        if (secret_key.data()[i] > 1) { //-1, which is p-1, where p is prime of the last level in coeff modulus
+            large_p = (uint64_t) secret_key.data()[i];
+	    break;
+	}
+    }
+    seal::util::RNSIter new_key_rns(secret_key.data().data(), degree);
+    ntt_negacyclic_harvey(new_key_rns, coeff_modulus.size(), context.key_context_data()->small_ntt_tables());
+
+    inverse_ntt_negacyclic_harvey(secret_key_small.data().data(), seal_context_small.key_context_data()->small_ntt_tables()[0]);
+    for (int i = 0; i < params.n; i++) {
+        if (secret_key_small.data()[i] > 1) {
+            small_p = (uint64_t) secret_key_small.data()[i];
+	    break;
+	}
+    }
+    seal::util::RNSIter new_key_rns_small(secret_key_small.data().data(), degree);
+    ntt_negacyclic_harvey(new_key_rns_small, coeff_modulus_small.size(), seal_context_small.key_context_data()->small_ntt_tables());
+
+	    
     RandomToStandardAdapter engine(rng->create());
     uniform_int_distribution<uint32_t> dist(0, 100);
 
