@@ -941,9 +941,8 @@ void serverOperations3therest_obliviousExpansion(EncryptionParameters& enc_param
     e2 = chrono::high_resolution_clock::now();
     t2 += chrono::duration_cast<chrono::microseconds>(e2 - s2).count();
 
-
-    unpack_pv_time += t1;
-    digest_encode_time += t2;
+    // unpack_pv_time += t1;
+    // digest_encode_time += t2;
     /* cout << "Unpack PV time: " << t1 << endl; */
     /* cout << "digest encoding time: " << t2 << endl; */
 }
