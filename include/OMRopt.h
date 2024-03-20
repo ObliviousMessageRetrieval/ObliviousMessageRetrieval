@@ -12,6 +12,10 @@ void OMR3_opt() {
     size_t poly_modulus_degree = poly_modulus_degree_glb;
     int t = 65537;
 
+    process_u_time.resize(numcores, 0);
+    unpack_pv_time.resize(numcores, 0);
+    digest_encode_time.resize(numcores, 0);
+
     int numOfTransactions = numOfTransactions_glb;
     int half_party_size = ceil(((double) party_size_glb) / 2.0);
 
@@ -359,7 +363,7 @@ void OMR3_opt() {
             /* Ciphertext packSIC_coeff = slotToCoeff(context, context_next, packSIC_sqrt_list, U_plain_list, */
             /*                                        gal_keys_slotToCoeff, 128, degree); */
             Ciphertext packSIC_coeff = slotToCoeff_WOPrepreocess_time(context, context_next, packSIC_sqrt_list,
-								      gal_keys_slotToCoeff, process_u_time, 128, degree, t, inv);
+								      gal_keys_slotToCoeff, process_u_time[i], 128, degree, t, inv);
 
     	    /* Ciphertext packSIC_coeff; */
     	    /* plainInd.data()[i] = 65535; */
@@ -425,8 +429,14 @@ void OMR3_opt() {
     }
 
     /* cout << "Process U time: " << process_u_time << " us.\n"; */
-    cout << "PVUnpack time: " << unpack_pv_time - process_u_time << " us.\n";
-    cout << "ExpandedPVToDigest time: " << digest_encode_time << " us.\n";
+    uint64_t total_u = 0, total_unpack = 0, total_digest = 0;
+    for (int i = 0; i < numcores; i++) {
+      total_u += process_u_time[i];
+      total_unpack += unpack_pv_time[i];
+      total_digest += digest_encode_time[i];
+    }
+    cout << "PVUnpack time: " << total_unpack - total_u << " us.\n";
+    cout << "ExpandedPVToDigest time: " << total_digest << " us.\n";
 
 
     /* cout << "** FINAL LHS NOISE before mod: " << decryptor.invariant_noise_budget(lhs_multi_ctr[0][0]) << endl; */
