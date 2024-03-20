@@ -766,7 +766,7 @@ Ciphertext obtainPackedSICFromRingLWEClue(SecretKey& sk, vector<OPVWCiphertext>&
 
 
 // Phase 2, retrieving for OMR take 3, with benchmark time
-void serverOperations3therest_obliviousExpansion(EncryptionParameters& enc_param, vector<Ciphertext>& lhsCounter, vector<vector<int>>& bipartite_map,
+void serverOperations3therest_obliviousExpansion_time(EncryptionParameters& enc_param, vector<Ciphertext>& lhsCounter, vector<vector<int>>& bipartite_map,
                                                  vector<vector<Ciphertext>>& rhs, Ciphertext& packedSIC, const vector<vector<uint64_t>>& payload,
                                                  const RelinKeys& relin_keys, const GaloisKeys& gal_keys, const SecretKey& secretKey,
                                                  const PublicKey& public_key, const size_t& degree, const SEALContext& context_next,
