@@ -388,9 +388,10 @@ void OMR3_opt() {
             /* } */
             /* cout << endl; */
 
-            serverOperations3therest_obliviousExpansion(parms_expand, templhsctr, bipartite_map[i], temprhs, packSIC_coeff, payload_multicore[i],
-							relin_keys, gal_keys_expand, sk_expand, public_key_last, poly_modulus_degree, context_next, context_expand,
-							poly_modulus_degree, counter[i], number_of_ct, party_size_glb, acc_slots+1, true);
+            serverOperations3therest_obliviousExpansion_time(parms_expand, templhsctr, bipartite_map[i], temprhs, packSIC_coeff, payload_multicore[i],
+							     relin_keys, gal_keys_expand, sk_expand, public_key_last, poly_modulus_degree, context_next, context_expand,
+							     poly_modulus_degree, counter[i], unpack_pv_time[i], digest_encode_time[i]number_of_ct, party_size_glb,
+		    					     acc_slots+1, true);
 
             if(j == 0){
                 lhs_multi_ctr[i] = templhsctr;
