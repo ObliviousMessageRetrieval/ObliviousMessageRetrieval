@@ -119,7 +119,7 @@ make
 make install
 
 # Old OpenSSL used for plain AES function without EVP abstraction
-cd $OMRDIR && git clone -b OpenSSL_1_1_1-stable https://github.com/openssl/openssl
+cd $OMRDIR && git clone -b OpenSSL_1_1_1w https://github.com/openssl/openssl
 cd openssl
 ./config --prefix=$BUILDDIR
 make
@@ -128,7 +128,7 @@ make install
 # Optional
 # Notice that although we 'enable' hexl via command line, it does not take much real effect on GCP instances
 # and thus does not have much impact on our runtime
-cd $OMRDIR && git clone --branch 1.2.3 https://github.com/intel/hexl
+cd $OMRDIR && git clone --branch v1.2.3 https://github.com/intel/hexl
 cd hexl
 cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$BUILDDIR
 cmake --build build
@@ -172,11 +172,7 @@ cd $BUILDDIR
 ./OMRdemos perfomr2 1 8 65536 100
 ./OMRdemos perfomr2 1 8 65536 150
 ```
-- To demonstrate the runtime under multicore (2 cores):
-```
-./OMRdemos perfomr1 2 8 65536 50
-./OMRdemos perfomr2 2 8 65536 50
-```
+
 
 ### Sample Output
 ```
