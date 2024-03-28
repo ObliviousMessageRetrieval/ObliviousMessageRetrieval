@@ -77,7 +77,7 @@ This code implements DoS-PerfOMR scheme (in Section 7.4 in the DoS-PerfOMR paper
     - main scheme DoS-PerfOMR (Section 7.4)
 - Parameters: N = 2^19, k = *ḱ* = 50, run on a a Google Compute Cloud e2-standard-8 instance type (4 hyperthreads of an Intel Xeon 3.10 GHz CPU with 32GB RAM)
 - Measurement (with parameters in Section 8):
-    - <img src="dos_measurement.png" alt="dos_measurement" width="700"/>
+    - <img src="dos_measurement.png" alt="dos_measurement" width="900"/>
 
 
 ### Parameters Summary
