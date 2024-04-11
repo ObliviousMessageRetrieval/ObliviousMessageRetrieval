@@ -100,3 +100,24 @@ cd $BUILDDIR
 # to reproduce the main benchmark result:
 ./OMRdemos dos 1 8 65536 50 
 ```
+
+### Sample Output
+```
+Preparing database and paramaters...
+Pertient message indices: [ 3558 3683 3881 4099 4857 5142 5241 7165 7774 7806 8085 8375 8381 8597 8608 8769 9119 9960 10478 10689 10928 12291 12937 13238 15021 16730 16929 19011 19745 20384 21812 22398 22565 23523 23913 24844 24929 25352 25687 26401 27076 27309 27372 28726 30793 31006 31344 31838 32077 32215 ]
+/
+| Encryption parameters :
+|   scheme: BFV
+|   poly_modulus_degree: 32768
+|   coeff_modulus size: 905 (35 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 30 + 60) bits
+|   plain_modulus: 65537
+\
+Database and parameters prepared.
+
+Preprocess switching key time: 264900272 us.
+ClueToPackedPV time: 160386979 us.
+PVUnpack time: 675661388 us.
+ExpandedPVToDigest time: 218222953 us.
+
+Detector running time: 965717410 us.
+Digest size: 568138 bytes
