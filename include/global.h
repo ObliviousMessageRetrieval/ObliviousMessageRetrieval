@@ -19,7 +19,9 @@ int num_bucket_glb = 400;
 
 int bfv_Q = 65537;
 
-int range_check_r = 19; // 19 for perfomr default param set, 81 for dos omr
+// 19 for perfomr default param set, 81 for dos omr
+int range_check_r = 19;
+int range_check_r_dos = 81;
 
 int step_size_glb = 32; // used for oblivious expansion
 
