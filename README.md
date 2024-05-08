@@ -125,6 +125,13 @@ cd openssl
 make
 make install
 
+# we use a personal forked version of SEAL for some overwritten functions
+cd $OMRDIR && git clone https://github.com/wyunhao/SEAL
+cd SEAL
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$BUILDDIR -DSEAL_USE_INTEL_HEXL=ON 
+cmake --build build
+cmake --install build
+
 # Optional
 # Notice that although we 'enable' hexl via command line, it does not take much real effect on GCP instances
 # and thus does not have much impact on our runtime
@@ -138,8 +145,6 @@ cd $OMRDIR/ObliviousMessageRetrieval/build
 mkdir ../data
 mkdir ../data/payloads
 mkdir ../data/clues
-mkdir ../data/cluePoly
-mkdir ../data/processedCM
 cmake .. -DCMAKE_PREFIX_PATH=$BUILDDIR
 make
 ```
