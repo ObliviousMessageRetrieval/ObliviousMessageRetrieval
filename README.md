@@ -72,6 +72,13 @@ cd openssl
 make
 make install
 
+# SEAL library
+cd $OMRDIR && git clone https://github.com/microsoft/SEAL
+cd SEAL
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$BUILDDIR -DSEAL_USE_INTEL_HEXL=ON 
+cmake --build build
+cmake --install build
+
 # Optional
 # Notice that although we 'enable' hexl via command line, it does not take much real effect on GCP instances
 # and thus does not have much impact on our runtime
