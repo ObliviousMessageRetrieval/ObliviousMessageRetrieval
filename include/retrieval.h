@@ -193,12 +193,6 @@ void randomizedIndexRetrieval_opt(vector<Ciphertext>& buckets, vector<Ciphertext
             pod_matrices[the_scalar_mtx][index + (slots_per_bucket - 1) * num_buckets] = 1;
         }
 
- //        if (find(exp_pert.begin(), exp_pert.end(), counter) != exp_pert.end()) {
- //          ofstream datafile;
- //          datafile.open("../data/pert_" +to_string(counter) + ".txt");
- //          datafile << pod_matrices << "\n";
- //        }
-
         for(size_t j = 0; j < C_prime; j++){
             Plaintext plain_matrix;
             batch_encoder.encode(pod_matrices[j], plain_matrix);

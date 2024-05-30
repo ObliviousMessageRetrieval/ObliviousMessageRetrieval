@@ -283,11 +283,11 @@ struct srPKEParam{
   double std_dev;
   int ell;
   srPKEParam(){
-    n1 = 990;
-    n2 = 787;
+    n1 = 936;
+    n2 = 760;
     k = 1;
     q = 65537;
-    std_dev = 1.3;
+    std_dev = 0.5;
     ell = 3;
   }
   srPKEParam(int n1, int n2, int k, int q, double std_dev, int ell)

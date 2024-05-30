@@ -26,7 +26,16 @@ void choosePertinentMsg(int numOfTransactions, int pertinentMsgNum, vector<int>&
         pertinentMsgIndices.push_back(temp);
     }
     sort(pertinentMsgIndices.begin(), pertinentMsgIndices.end());
-    /* pertinentMsgIndices.push_back(10); */
+    // pertinentMsgIndices.push_back(1);
+    // pertinentMsgIndices.push_back(10);
+    // pertinentMsgIndices.push_back(13);
+    // pertinentMsgIndices.push_back(24);
+    // pertinentMsgIndices.push_back(46);
+    // pertinentMsgIndices.push_back(53);
+    // pertinentMsgIndices.push_back(60);
+    // pertinentMsgIndices.push_back(75);
+    // pertinentMsgIndices.push_back(78);
+    // pertinentMsgIndices.push_back(80);
 
     /* cout << "Expected Message Indices: " << pertinentMsgIndices << endl; */
 }
@@ -739,7 +748,6 @@ vector<vector<uint64_t>> preparingTransactionsFormal_opt(vector<int>& pertinentM
     }
 
     pertinentMsgIndices = p_reduced;
-    exp_pert = p_reduced;
 
     return ret;
 }
@@ -954,11 +962,11 @@ vector<vector<long>> receiverDecodingOMR3_omrtake3(vector<Ciphertext>& lhsCounte
     // 1. find pertinent indices
     map<int, pair<int, int>> pertinentIndices;
     decodeIndicesRandom_opt(pertinentIndices, lhsCounter, secret_key, context, partySize, slot_per_bucket);
-    /* for (map<int, pair<int, int>>::iterator it = pertinentIndices.begin(); it != pertinentIndices.end(); it++) */
-    /* { */
-    /*     cout << it->first << "," << it->second.second << "  "; */
-    /* } */
-    /* cout << std::endl; */
+    for (map<int, pair<int, int>>::iterator it = pertinentIndices.begin(); it != pertinentIndices.end(); it++)
+    {
+        cout << it->first << "," << it->second.second << "  ";
+    }
+    cout << std::endl;
 
     // 2. forming lhs
     vector<vector<int>> lhs;
@@ -1034,7 +1042,7 @@ Ciphertext obtainPackedSIC_dos(SecretKey& sk, vector<srPKECiphertext>& SICPVW, v
 }
 
 
-vector<vector<uint64_t>> preparingTransactionsFormal_dos(vector<int>& pertinentMsgIndices, srPKEpk& pk, int numOfTransactions,
+vector<vector<uint64_t>> preparingTransactionsFormal_dos(vector<int>& pertinentMsgIndices, srPKEsk& sk, srPKEpk& pk, int numOfTransactions,
                                                          int pertinentMsgNum, const srPKEParam& params,
                                                          const int party_size = party_size_glb) {
 
@@ -1063,8 +1071,7 @@ vector<vector<uint64_t>> preparingTransactionsFormal_dos(vector<int>& pertinentM
             if(find(p_reduced.begin(), p_reduced.end(), ind) == p_reduced.end()) { // the whole chunk never get stored before
                 p_reduced.push_back(ind);
                 expectedIndices.push_back(ind);
-                /* ret.push_back(loadDataSingle_chunk(ind, party_size, 306)); */
-		ret.push_back(loadDataSingle_chunk(ind, half_party_size, 306*2));
+		        ret.push_back(loadDataSingle_chunk(ind, half_party_size, 306*2));
             }
             time_start = chrono::high_resolution_clock::now();
             srPKEEncPK(tempclue, zeros, pk, params);
@@ -1078,9 +1085,6 @@ vector<vector<uint64_t>> preparingTransactionsFormal_dos(vector<int>& pertinentM
     }
 
     pertinentMsgIndices = p_reduced;
-
-
-    cout << tt << ", " << tt/ p_reduced.size() << endl;
 
     return ret;
 }

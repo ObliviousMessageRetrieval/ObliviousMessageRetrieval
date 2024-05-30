@@ -1082,7 +1082,7 @@ Ciphertext raisePowerToPrime(const SEALContext& context, const RelinKeys &relin_
 void FastRangeCheck_Random(SecretKey& sk, Ciphertext& output, const Ciphertext& input, int degree, const RelinKeys &relin_keys,
 						   const SEALContext& context, const vector<uint64_t>& rangeCheckIndices, const int firstLevel,
 						   const int secondLevel, map<int, bool>& firstLevelMod, map<int, bool>& secondLevelMod,
-						   bool default_param_set = true, const range_check_r = range_check_r) {
+						   bool default_param_set = true, const int range_check_range = range_check_r) {
 	MemoryPoolHandle my_pool_larger = MemoryPoolHandle::New(true);
 	auto old_prof_larger = MemoryManager::SwitchProfile(std::make_unique<MMProfFixed>(std::move(my_pool_larger)));
 
@@ -1098,13 +1098,13 @@ void FastRangeCheck_Random(SecretKey& sk, Ciphertext& output, const Ciphertext& 
 	}
 
 	if (default_param_set) {
-		vector<Ciphertext> terms(range_check_r);
+		vector<Ciphertext> terms(range_check_range);
 		for (int i = 0; i < (int) terms.size(); i++) {
 			terms[i] = input;
 		}
 
 		// get all (x-xi) terms
-		for (int i = 1; i < range_check_r; i++) {
+		for (int i = 1; i < range_check_range; i++) {
 			plainInd.data()[0] = i*i;
 			evaluator.negate_inplace(terms[i]);
 			evaluator.add_plain_inplace(terms[i], plainInd);

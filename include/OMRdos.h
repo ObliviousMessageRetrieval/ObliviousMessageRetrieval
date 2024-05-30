@@ -13,6 +13,10 @@ void OMR3_dos() {
 	size_t poly_modulus_degree = poly_modulus_degree_glb;
 	int t = 65537;
 
+	process_u_time.resize(numcores, 0);
+    unpack_pv_time.resize(numcores, 0);
+    digest_encode_time.resize(numcores, 0);
+
 	int numOfTransactions = numOfTransactions_glb;
 	int half_party_size = ceil(((double) party_size_glb) / 2.0);
 
@@ -21,10 +25,10 @@ void OMR3_dos() {
 
 	int num_ct_for_buckets = OMRthreeM / default_bucket_num_glb;
 
+	cout << "Preparing database and paramaters...\n";
 	// pack each two message into one bfv ciphertext, since 306*2*50 < ring_dim = 32768, where 50 is the upper bound of # pertinent messages
 	createDatabase(numOfTransactions * half_party_size, payload_size*2);
 	/* createDatabase(numOfTransactions * party_size_glb, payload_size); */
-	cout << "Finishing createDatabase\n";
 
 	// step 1. generate srPKE sk
 	// recipient side
@@ -33,24 +37,13 @@ void OMR3_dos() {
 	auto sk = srPKEGenerateSecretKey(params);
 	auto pk = srPKEGeneratePublicKey(params, sk);
 
-	/* for (int i = 0; i < params.ell; i++) { */
-	/*   for (int j = 0; j < params.n1; j++) { */
-	/*     cout << sk[i][j] << " "; */
-	/*   } */
-	/*   cout << endl; */
-	/* } */
-
-	cout << endl;
-	cout << "Finishing generating sk for srPKE cts\n";
-
 	// step 2. prepare transactions
 	vector<int> pertinentMsgIndices;
-	auto expected = preparingTransactionsFormal_dos(pertinentMsgIndices, pk, numOfTransactions,
+	auto expected = preparingTransactionsFormal_dos(pertinentMsgIndices, sk, pk, numOfTransactions,
 													num_of_pertinent_msgs_glb, params);
 	/* vector<vector<uint64_t>> expected = {{0}}; */
 
-	cout << expected.size() << " pertinent msg: Finishing preparing messages\n";
-	cout << "Perty: "<< pertinentMsgIndices << endl;
+	cout << "Pertient message indices: "<< pertinentMsgIndices << endl;
 
 	// step 3. generate detection key
 	// recipient side
@@ -59,9 +52,9 @@ void OMR3_dos() {
 	parms.set_poly_modulus_degree(poly_modulus_degree);
 
 	auto coeff_modulus = CoeffModulus::Create(poly_modulus_degree, { 40, 60, 60, 60, 60,
-																	60, 60, 60, 60,
-																	60, 60, 60, 60,
-																	60, 60, 30, 60});
+																	 60, 60, 60, 60,
+																	 60, 60, 60, 60,
+																	 60, 60, 30, 60});
 	parms.set_coeff_modulus(coeff_modulus);
 	parms.set_plain_modulus(t);
 
@@ -73,7 +66,7 @@ void OMR3_dos() {
 	parms.set_random_generator(rng);
 
 	SEALContext context(parms, true, sec_level_type::none);
-	cout << "primitive root: " << context.first_context_data()->plain_ntt_tables()->get_root() << endl;
+	// cout << "primitive root: " << context.first_context_data()->plain_ntt_tables()->get_root() << endl;
 	print_parameters(context);
 	KeyGenerator keygen(context);
 	SecretKey secret_key = keygen.secret_key();
@@ -88,19 +81,7 @@ void OMR3_dos() {
 	BatchEncoder batch_encoder(context);
 
 	vector<Ciphertext> switchingKey = omr_dos::generateDetectionKey(context, poly_modulus_degree, public_key,
-																	secret_key, sk, params);
-
-	/* for (int i = 0; i < (int) switchingKey.size(); i++) { */
-	/*   Plaintext pp; */
-	/*   vector<uint64_t> skt; */
-	/*   decryptor.decrypt(switchingKey[i], pp); */
-	/*   batch_encoder.decode(pp, skt); */
-	/*   for (int j = 0; j < (int) skt.size(); j++) { */
-	/*     cout << skt[j] << " "; */
-	/*   } */
-	/*   cout << endl; */
-	/* } */
-
+									secret_key, sk, params);
 
 	Ciphertext packedSIC;
 
@@ -111,17 +92,13 @@ void OMR3_dos() {
 	GaloisKeys gal_keys, gal_keys_slotToCoeff, gal_keys_expand;
 	vector<int> stepsfirst = {1};
 	// only one rot key is needed for full level
-	cout << "Steps: " << stepsfirst << endl;
 	keygen.create_galois_keys(stepsfirst, gal_keys);
-	cout << "Created.\n";
 
 	/////////////////////////////////////////////////////////////// Rot Key gen
 	vector<int> steps = {0};
 	for(int i = 1; i < int(poly_modulus_degree/2); i *= 2) {
 		steps.push_back(i);
 	}
-
-	cout << "Finishing generating detection keys\n";
 
 	/////////////////////////////////////// Level specific keys
 	vector<Modulus> coeff_modulus_next = coeff_modulus;
@@ -169,9 +146,12 @@ void OMR3_dos() {
 	PublicKey public_key_last;
 	keygen_next.create_public_key(public_key_last);
 
+	cout << "Database and parameters prepared.\n\n";
+
 	////////////////////////////////////////////////////
 
-	vector<vector<Ciphertext>> packedSICfromPhase1(numcores,vector<Ciphertext>(numOfTransactions/numcores/poly_modulus_degree)); // Assume numOfTransactions/numcores/poly_modulus_degree is integer, pad if needed
+	vector<vector<Ciphertext>> packedSICfromPhase1(numcores,vector<Ciphertext>(numOfTransactions/numcores/poly_modulus_degree));
+	// Assume numOfTransactions/numcores/poly_modulus_degree is integer, pad if needed
 
 	NTL::SetNumThreads(numcores);
 	SecretKey secret_key_blank;
@@ -207,17 +187,6 @@ void OMR3_dos() {
 			evaluator.transform_to_ntt_inplace(rotated_switchingKey[l][i]);
 		}
 	  
-		/* curr = switchingKey[l]; */
-		/* evaluator.rotate_rows(curr, 1, gal_keys, next); */
-		/* evaluator.transform_to_ntt_inplace(curr); */
-		/* saveSwitchingKey(curr, l*tempn); */
-
-		/* for(int i = 1; i < tempn; i++){ */
-		/* 	  curr = next; */
-		/*     evaluator.rotate_rows(curr, 1, gal_keys, next); */
-		/* 	  evaluator.transform_to_ntt_inplace(curr); */
-		/* 	  saveSwitchingKey(curr, l*tempn+i); */
-		/* } */
 	}
 	e = chrono::high_resolution_clock::now();
 	cout << "Prepare switching key time: " << chrono::duration_cast<chrono::microseconds>(e - s).count() << endl;
@@ -226,13 +195,13 @@ void OMR3_dos() {
 
 	NTL_EXEC_RANGE(numcores, first, last);
 	chrono::high_resolution_clock::time_point s1, e1;
-	int t11 = 0, t22 = 0;
+	int t11 = 0, t22 = 0, bb_to_pv = 0;
 	for(int i = first; i < last; i++){
 		counter[i] = numOfTransactions/numcores*i;
 
 		size_t j = 0;
 		while(j < numOfTransactions/numcores/poly_modulus_degree) {
-			if(!i) cout << "Phase 1, Core " << i << ", Batch " << j << endl;
+			// if(!i) cout << "Phase 1, Core " << i << ", Batch " << j << endl;
 
 			Ciphertext packedSIC_temp;
 			s1 = chrono::high_resolution_clock::now();
@@ -245,16 +214,16 @@ void OMR3_dos() {
 
 				s = chrono::high_resolution_clock::now();
 				packedSIC_temp = obtainPackedSIC_dos(secret_key, SICPVW_multicore[i], rotated_switchingKey, relin_keys, gal_keys,
-									poly_modulus_degree, context, params, poly_modulus_degree);
-				cout << "** Noise after phase 1: " << decryptor.invariant_noise_budget(packedSIC_temp) << endl;
+								     poly_modulus_degree, context, params, poly_modulus_degree);
+				// cout << "** Noise after phase 1: " << decryptor.invariant_noise_budget(packedSIC_temp) << endl;
 
-				/* decryptor.decrypt(packedSIC_temp, pl); */
-				/* batch_encoder.decode(pl, tm); */
-				/* cout << "SIC after rangeCheck: ------------------------------ \n"; */
-				/* for (int c = 0; c < (int) poly_modulus_degree; c++) { */
-				/*     cout << tm[c] << " "; */
-				/* } */
-				/* cout << endl; */
+				// decryptor.decrypt(packedSIC_temp, pl);
+				// batch_encoder.decode(pl, tm);
+				// cout << "SIC after rangeCheck: ------------------------------ \n";
+				// for (int c = 0; c < (int) 100; c++) {
+				//     cout << tm[c] << " ";
+				// }
+				// cout << endl;
 
 				if (p == 0){
 					packedSICfromPhase1[i][j] = packedSIC_temp;
@@ -268,9 +237,13 @@ void OMR3_dos() {
 			counter[i] += poly_modulus_degree;
 			SICPVW_multicore[i].clear();
 			e1 = chrono::high_resolution_clock::now();
-			cout << "BB to PV time: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl;
+			bb_to_pv += chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
+			// cout << "BB to PV time: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl;
 		}
 	}
+
+	cout << "ClueToPackedPV time: " << bb_to_pv << " us.\n";
+
 	NTL_EXEC_RANGE_END;
 
 	for (int l = 0; l < params.ell; l++) {
@@ -299,8 +272,6 @@ void OMR3_dos() {
 		i = random_uint64();
 	}
 	bipartiteGraphWeightsGeneration(bipartite_map_glb, weights_glb, numOfTransactions, OMRthreeM, repeatition_glb, seed_glb);
-
-	cout << bipartite_map_glb.size() << ", " << bipartite_map_glb[0].size() << endl;
 
 	/* for 32768 (15 bit) messages, partySize = 15 (4 bit), we need 60/16 = 4 acc slots */
 	int encode_bit = ceil(log2(party_size_glb + 1));
@@ -350,7 +321,7 @@ void OMR3_dos() {
 		vector<Ciphertext> packSIC_sqrt_list(2*sq_ct);
 
 		while(j < numOfTransactions/numcores/poly_modulus_degree) {
-			if(!i) cout << "Phase 2-3, Core " << i << ", Batch " << j << endl;
+			// if(!i) cout << "Phase 2-3, Core " << i << ", Batch " << j << endl;
 			
 			/* loadPackedData(payload_multicore[i], counter[i], counter[i]+poly_modulus_degree, payload_size, party_size_glb); */
 			loadPackedData(payload_multicore[i], counter[i], counter[i]+poly_modulus_degree, payload_size*2, half_party_size);
@@ -381,8 +352,9 @@ void OMR3_dos() {
 
 			/* Ciphertext packSIC_coeff = slotToCoeff(context, context_next, packSIC_sqrt_list, U_plain_list, */
 			/*                                        gal_keys_slotToCoeff, 128, degree); */
-			Ciphertext packSIC_coeff = slotToCoeff_WOPrepreocess(context, context_next, packSIC_sqrt_list,
-																 gal_keys_slotToCoeff, 128, degree, t, inv);
+			Ciphertext packSIC_coeff = slotToCoeff_WOPrepreocess_time(context, context_next, packSIC_sqrt_list,
+																 	  gal_keys_slotToCoeff, process_u_time[i], 128,
+																 	  degree, t, inv);
 
 			/* Ciphertext packSIC_coeff; */
 			/* plainInd.data()[i] = 65535; */
@@ -393,21 +365,23 @@ void OMR3_dos() {
 			/* } */
 
 			e1 = chrono::high_resolution_clock::now();
-			cout << "SlotToCoeff time: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl;
-			cout << "** Noise after slotToCoeff: " << decryptor.invariant_noise_budget(packSIC_coeff) << endl;
-			cout << "SIC plaintext after slotToCoeff: ------------------------------ \n";
-			decryptor.decrypt(packSIC_coeff, pl);
-			for (int c = 0; c < 100; c++) {
-				cout << pl.data()[c] << " ";
-			}
-			cout << endl;
+			unpack_pv_time[i] += chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
 
-			cout << "** Noise after slotToCoeff after mod: " << decryptor.invariant_noise_budget(packSIC_coeff) << endl;
-			serverOperations3therest_obliviousExpansion(parms_expand, templhsctr, bipartite_map[i], temprhs, packSIC_coeff,
-														payload_multicore[i], relin_keys, gal_keys_expand, sk_expand,
-														public_key_last, poly_modulus_degree, context_next, context_expand,
-														poly_modulus_degree, counter[i], number_of_ct, party_size_glb,
-														acc_slots+1, true);
+			// cout << "SlotToCoeff time: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl;
+			// cout << "** Noise after slotToCoeff: " << decryptor.invariant_noise_budget(packSIC_coeff) << endl;
+			// cout << "SIC plaintext after slotToCoeff: ------------------------------ \n";
+			// decryptor.decrypt(packSIC_coeff, pl);
+			// for (int c = 0; c < 100; c++) {
+			// 	cout << pl.data()[c] << " ";
+			// }
+			// cout << endl;
+
+			// cout << "** Noise after slotToCoeff after mod: " << decryptor.invariant_noise_budget(packSIC_coeff) << endl;
+			serverOperations3therest_obliviousExpansion_time(parms_expand, templhsctr, bipartite_map[i], temprhs, packSIC_coeff,
+															 payload_multicore[i], relin_keys, gal_keys_expand, sk_expand,
+															 public_key_last, poly_modulus_degree, context_next, context_expand,
+															 poly_modulus_degree, counter[i], unpack_pv_time[i], digest_encode_time[i],
+															 number_of_ct, party_size_glb, acc_slots+1, true);
 
 			if(j == 0) {
 				lhs_multi_ctr[i] = templhsctr;
@@ -445,8 +419,17 @@ void OMR3_dos() {
 		}
 	}
 
-	cout << "** FINAL LHS NOISE before mod: " << decryptor.invariant_noise_budget(lhs_multi_ctr[0][0]) << endl;
-	cout << "** FINAL RHS NOISE before mod: " << decryptor.invariant_noise_budget(rhs_multi[0][0][0]) << endl;
+    uint64_t total_u = 0, total_unpack = 0, total_digest = 0;
+    for (int i = 0; i < numcores; i++) {
+      total_u += process_u_time[i];
+      total_unpack += unpack_pv_time[i];
+      total_digest += digest_encode_time[i];
+    }
+    cout << "PVUnpack time: " << total_unpack - total_u << " us.\n";
+    cout << "ExpandedPVToDigest time: " << total_digest << " us.\n";
+
+	// cout << "** FINAL LHS NOISE before mod: " << decryptor.invariant_noise_budget(lhs_multi_ctr[0][0]) << endl;
+	// cout << "** FINAL RHS NOISE before mod: " << decryptor.invariant_noise_budget(rhs_multi[0][0][0]) << endl;
 	while(context.last_parms_id() != lhs_multi_ctr[0][0].parms_id()) {
 		for(size_t q = 0; q < lhs_multi_ctr[0].size(); q++){
 			evaluator.mod_switch_to_next_inplace(lhs_multi_ctr[0][q]);
@@ -459,8 +442,8 @@ void OMR3_dos() {
 			}
 		}
 	}
-	cout << "** FINAL LHS NOISE after mod: " << decryptor.invariant_noise_budget(lhs_multi_ctr[0][0]) << endl;
-	cout << "** FINAL RHS NOISE after mod: " << decryptor.invariant_noise_budget(rhs_multi[0][0][0]) << endl;
+	// cout << "** FINAL LHS NOISE after mod: " << decryptor.invariant_noise_budget(lhs_multi_ctr[0][0]) << endl;
+	// cout << "** FINAL RHS NOISE after mod: " << decryptor.invariant_noise_budget(rhs_multi[0][0][0]) << endl;
 
 
 	stringstream data_streamdg, data_streamdg2;
@@ -473,7 +456,7 @@ void OMR3_dos() {
 	for(size_t q = 0; q < lhs_multi_ctr[0].size(); q++){
 		digsize += lhs_multi_ctr[0][q].save(data_streamdg2);
 	}
-	cout << "Digest size: " << digsize << " bytes" << endl;
+	// cout << "Digest size: " << digsize << " bytes" << endl;
 
 	//////// after switching to the last level, mod down to smaller q before sending the digest ////////
 	uint64_t small_p = 268369920;
@@ -518,29 +501,27 @@ void OMR3_dos() {
 	//////////// such that they differ only w.r.t. the modulus                               ////////////
 
 	// above is for confirming the above two primes
-	inverse_ntt_negacyclic_harvey(secret_key.data().data(), context.key_context_data()->small_ntt_tables()[0]);
-	for (int i = 0; i < 10; i++) {
-		cout << secret_key.data()[i] << " ";
-	}
-	cout << endl;
-	seal::util::RNSIter new_key_rns(secret_key.data().data(), degree);
-	ntt_negacyclic_harvey(new_key_rns, coeff_modulus.size(), context.key_context_data()->small_ntt_tables());
+	// inverse_ntt_negacyclic_harvey(secret_key.data().data(), context.key_context_data()->small_ntt_tables()[0]);
+	// for (int i = 0; i < 10; i++) {
+	// 	cout << secret_key.data()[i] << " ";
+	// }
+	// cout << endl;
+	// seal::util::RNSIter new_key_rns(secret_key.data().data(), degree);
+	// ntt_negacyclic_harvey(new_key_rns, coeff_modulus.size(), context.key_context_data()->small_ntt_tables());
 
-	inverse_ntt_negacyclic_harvey(secret_key_small.data().data(), seal_context_small.key_context_data()->small_ntt_tables()[0]);
-	for (int i = 0; i < 10; i++) {
-		cout << secret_key_small.data()[i] << " ";
-	}
-	cout << endl;
-	seal::util::RNSIter new_key_rns_small(secret_key_small.data().data(), degree);
-	ntt_negacyclic_harvey(new_key_rns_small, coeff_modulus_small.size(), seal_context_small.key_context_data()->small_ntt_tables());
+	// inverse_ntt_negacyclic_harvey(secret_key_small.data().data(), seal_context_small.key_context_data()->small_ntt_tables()[0]);
+	// for (int i = 0; i < 10; i++) {
+	// 	cout << secret_key_small.data()[i] << " ";
+	// }
+	// cout << endl;
+	// seal::util::RNSIter new_key_rns_small(secret_key_small.data().data(), degree);
+	// ntt_negacyclic_harvey(new_key_rns_small, coeff_modulus_small.size(), seal_context_small.key_context_data()->small_ntt_tables());
 
 
 	inverse_ntt_negacyclic_harvey(secret_key.data().data(), context.key_context_data()->small_ntt_tables()[0]);
 	inverse_ntt_negacyclic_harvey(secret_key_small.data().data(), seal_context_small.key_context_data()->small_ntt_tables()[0]);
 	for (int i = 0; i < (int) degree; i++) {
-		/* cout << secret_key.data()[i] << " --> "; */
 		secret_key_small.data()[i] = (secret_key.data()[i] == large_p) ? small_p : secret_key.data()[i];
-		/* cout << secret_key_small.data()[i] << endl; */
 	}
 	cout << endl;
 	seal::util::RNSIter new_key_rns1(secret_key.data().data(), degree);
@@ -574,7 +555,7 @@ void OMR3_dos() {
 											numOfTransactions, party_size_glb, half_party_size, acc_slots+1, payload_size*2);
 	time_end = chrono::high_resolution_clock::now();
 	time_diff = chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-	cout << "\nRecipient running time: " << time_diff.count() << "us." << "\n";
+	// cout << "\nRecipient running time: " << time_diff.count() << "us." << "\n";
 
 	/* cout << "EXPECTED -------------------------------------------------------- \n" << expected << endl; */
 	/* cout << "RESULT ---------------------------------------------------------- \n" << res << endl; */

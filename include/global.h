@@ -2,7 +2,6 @@
 #include "seal/seal.h"
 using namespace seal;
 
-vector<int> exp_pert;
 int numcores = 4;
 int OMRtwoM = 100;
 
@@ -21,7 +20,7 @@ int bfv_Q = 65537;
 
 // 19 for perfomr default param set, 81 for dos omr
 int range_check_r = 19;
-int range_check_r_dos = 81;
+int range_check_r_dos = 80;
 
 int step_size_glb = 32; // used for oblivious expansion
 

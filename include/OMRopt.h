@@ -45,7 +45,8 @@ void OMR3_opt() {
 
     // step 2. prepare transactions
     vector<int> pertinentMsgIndices;
-    auto expected = preparingTransactionsFormal_opt(pertinentMsgIndices, pk, numOfTransactions, num_of_pertinent_msgs_glb,  params);
+    auto expected = preparingTransactionsFormal_opt(pertinentMsgIndices, pk, numOfTransactions,
+                                                    num_of_pertinent_msgs_glb,  params);
     /* vector<vector<uint64_t>> expected = {{0}}; */
     /* saveClues_opt_attack(params, 0); */
 
@@ -258,12 +259,12 @@ void OMR3_opt() {
             s1 = chrono::high_resolution_clock::now();
             for (int p = 0; p < party_size_glb; p++) {
 
-	        s = chrono::high_resolution_clock::now();
+	            s = chrono::high_resolution_clock::now();
                 loadClues_OPVW(SICPVW_multicore[i], counter[i], counter[i]+poly_modulus_degree, params, p, party_size_glb);
-		e = chrono::high_resolution_clock::now();
-		t11 += chrono::duration_cast<chrono::microseconds>(e - s).count();
+                e = chrono::high_resolution_clock::now();
+                t11 += chrono::duration_cast<chrono::microseconds>(e - s).count();
 
-		s = chrono::high_resolution_clock::now();
+                s = chrono::high_resolution_clock::now();
                 packedSIC_temp = obtainPackedSICFromRingLWEClue(secret_key, SICPVW_multicore[i], rotated_switchingKey, relin_keys, gal_keys,
                                                                 poly_modulus_degree, context, params, poly_modulus_degree, default_param_set);
                 /* cout << "** Noise after phase 1: " << decryptor.invariant_noise_budget(packedSIC_temp) << endl; */
@@ -281,14 +282,14 @@ void OMR3_opt() {
                 } else {
                     evaluator.add_inplace(packedSICfromPhase1[i][j], packedSIC_temp);
                 }
-		e = chrono::high_resolution_clock::now();
-		t22 += chrono::duration_cast<chrono::microseconds>(e - s).count();
+                e = chrono::high_resolution_clock::now();
+                t22 += chrono::duration_cast<chrono::microseconds>(e - s).count();
             }
             j++;
             counter[i] += poly_modulus_degree;
             SICPVW_multicore[i].clear();
             e1 = chrono::high_resolution_clock::now();
-	    bb_to_pv += chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
+	        bb_to_pv += chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
             /* cout << "BB to PV time: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl; */
         }
     }
@@ -403,7 +404,8 @@ void OMR3_opt() {
             /* Ciphertext packSIC_coeff = slotToCoeff(context, context_next, packSIC_sqrt_list, U_plain_list, */
             /*                                        gal_keys_slotToCoeff, 128, degree); */
             Ciphertext packSIC_coeff = slotToCoeff_WOPrepreocess_time(context, context_next, packSIC_sqrt_list,
-								      gal_keys_slotToCoeff, process_u_time[i], 128, degree, t, inv);
+								                                      gal_keys_slotToCoeff, process_u_time[i], 128,
+                                                                      degree, t, inv);
 
     	    /* Ciphertext packSIC_coeff; */
     	    /* plainInd.data()[i] = 65535; */
@@ -413,8 +415,8 @@ void OMR3_opt() {
     	    /*   evaluator.mod_switch_to_next_inplace(packSIC_coeff); */
     	    /* } */
 
-	    e1 = chrono::high_resolution_clock::now();
-	    unpack_pv_time[i] += chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
+            e1 = chrono::high_resolution_clock::now();
+            unpack_pv_time[i] += chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
             /* cout << "SlotToCoeff time: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl; */
             /* decryptor.decrypt(packSIC_coeff, pl); */
             if (!default_param_set) {
@@ -428,27 +430,28 @@ void OMR3_opt() {
             /* } */
             /* cout << endl; */
 
-            serverOperations3therest_obliviousExpansion_time(parms_expand, templhsctr, bipartite_map[i], temprhs, packSIC_coeff, payload_multicore[i],
-							     relin_keys, gal_keys_expand, sk_expand, public_key_last, poly_modulus_degree, context_next, context_expand,
-							     poly_modulus_degree, counter[i], unpack_pv_time[i], digest_encode_time[i], number_of_ct, party_size_glb,
-		    					     acc_slots+1, true);
+            serverOperations3therest_obliviousExpansion_time(parms_expand, templhsctr, bipartite_map[i], temprhs, packSIC_coeff,
+                                                             payload_multicore[i], relin_keys, gal_keys_expand, sk_expand,
+                                                             public_key_last, poly_modulus_degree, context_next, context_expand,
+                                                             poly_modulus_degree, counter[i], unpack_pv_time[i], digest_encode_time[i],
+                                                             number_of_ct, party_size_glb, acc_slots+1, true);
 
             if(j == 0){
                 lhs_multi_ctr[i] = templhsctr;
-		for (int c = 0; c < (int) num_ct_for_buckets; c++) {
-		  for (int m = 0; m < (int) temprhs[0].size(); m++) {
-                    rhs_multi[c][i][m] = temprhs[c][m];
-		  }
-		}
+                for (int c = 0; c < (int) num_ct_for_buckets; c++) {
+                    for (int m = 0; m < (int) temprhs[0].size(); m++) {
+                        rhs_multi[c][i][m] = temprhs[c][m];
+                    }
+                }
             } else {
                 for(size_t q = 0; q < lhs_multi_ctr[i].size(); q++){
                     evaluator.add_inplace(lhs_multi_ctr[i][q], templhsctr[q]);
                 }
-		for (int c = 0; c < (int) num_ct_for_buckets; c++) {
-		  for (int m = 0; m < (int) temprhs[0].size(); m++) {
-                    evaluator.add_inplace(rhs_multi[c][i][m], temprhs[c][m]);
-		  }
-		}
+                for (int c = 0; c < (int) num_ct_for_buckets; c++) {
+                    for (int m = 0; m < (int) temprhs[0].size(); m++) {
+                        evaluator.add_inplace(rhs_multi[c][i][m], temprhs[c][m]);
+                    }
+                }
             }
             j++;
             payload_multicore[i].clear();
@@ -469,7 +472,6 @@ void OMR3_opt() {
 	}
     }
 
-    /* cout << "Process U time: " << process_u_time << " us.\n"; */
     uint64_t total_u = 0, total_unpack = 0, total_digest = 0;
     for (int i = 0; i < numcores; i++) {
       total_u += process_u_time[i];

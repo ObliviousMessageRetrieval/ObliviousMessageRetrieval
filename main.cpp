@@ -19,43 +19,6 @@ int main(int argc, char* argv[]) {
     cout << "+------------------------------------+" << endl;
     cout << "| Benchmark Test                     |" << endl;
     cout << "+------------------------------------+" << endl;
-    // cout << "+------------------------------------+" << endl;
-    // cout << "| Demos                              |" << endl;
-    // cout << "+------------------------------------+" << endl;
-    // cout << "| 1. OMD1p Detection Key Size        |" << endl;
-    // cout << "| 2. OMR1p/OMR2p Detection Key Size  |" << endl;
-    // cout << "| 3. OMD1p                           |" << endl;
-    // cout << "| 4. OMR1p Single Thread             |" << endl;
-    // cout << "| 5. OMR2p Single Thread             |" << endl;
-    // cout << "| 6. OMR1p Two Threads               |" << endl;
-    // cout << "| 7. OMR2p Two Threads               |" << endl;
-    // cout << "| 8. OMR1p Four Threads              |" << endl;
-    // cout << "| 9. OMR2p Four Threads              |" << endl;
-    // cout << "| 10.GOMR1 Single Thread             |" << endl;
-    // cout << "| 11.GOMR1 Two Threads               |" << endl;
-    // cout << "| 12.GOMR1 Four Threads              |" << endl;
-    // cout << "| 13.GOMR2 Single Thread             |" << endl;
-    // cout << "| 14.GOMR2 Two Threads               |" << endl;
-    // cout << "| 15.GOMR2 Four Threads              |" << endl;
-    // cout << "| 16.GOMR1_OM Single Thread          |" << endl;
-    // cout << "| 17.GOMR1_OM Two Threads            |" << endl;
-    // cout << "| 18.GOMR1_OM Four Threads           |" << endl;
-    // cout << "| 19.GOMR2_OM Single Thread          |" << endl;
-    // cout << "| 20.GOMR2_OM Two Threads            |" << endl;
-    // cout << "| 21.GOMR2_OM Four Threads           |" << endl;
-    // cout << "| 22.GOMR1_OM_BFV Single Thread      |" << endl;
-    // cout << "| 23.GOMR1_OM_BFV Two Threads        |" << endl;
-    // cout << "| 24.GOMR1_OM_BFV Four Threads       |" << endl;
-    // cout << "| 25.GOMR2_OM_BFV Single Thread      |" << endl;
-    // cout << "| 26.GOMR2_OM_BFV Two Threads        |" << endl;
-    // cout << "| 27.GOMR2_OM_BFV Four Threads       |" << endl;
-    // cout << "| 28.GOMR1_FG Single Thread          |" << endl;
-    // cout << "| 29.GOMR1_FG Two Threads            |" << endl;
-    // cout << "| 30.GOMR1_FG Four Threads           |" << endl;
-    // cout << "| 31.GOMR2_FG Single Thread          |" << endl;
-    // cout << "| 32.GOMR2_FG Two Threads            |" << endl;
-    // cout << "| 33.GOMR2_FG Four Threads           |" << endl;
-    // cout << "+------------------------------------+" << endl;
 
     int selection = 0;
     if (argc == 1) {
@@ -103,18 +66,18 @@ DEFAULT:
 	    numOfTransactions_glb = atoi(argv[4]);
 	    num_of_pertinent_msgs_glb = atoi(argv[5]);
 	} else if (PERFOMR2.compare(argv[1]) == 0) {
-            selection = 5;
+        selection = 5;
 	    default_param_set = false;
 	    numcores = atoi(argv[2]);
 	    party_size_glb = atoi(argv[3]);
 	    numOfTransactions_glb = atoi(argv[4]);
 	    num_of_pertinent_msgs_glb = atoi(argv[5]);
 	} else if (DOS.compare(argv[1]) == 0) {
-            selection = 34;
-	    // numcores = atoi(argv[2]);
-	    party_size_glb = atoi(argv[2]);
-	    numOfTransactions_glb = atoi(argv[3]);
-	    num_of_pertinent_msgs_glb = atoi(argv[4]);
+        selection = 34;
+	    numcores = atoi(argv[2]);
+	    party_size_glb = atoi(argv[3]);
+	    numOfTransactions_glb = atoi(argv[4]);
+	    num_of_pertinent_msgs_glb = atoi(argv[5]);
         } else {
             goto DEFAULT;
         }
