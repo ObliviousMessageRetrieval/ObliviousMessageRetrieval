@@ -73,7 +73,7 @@ make
 make install
 
 # SEAL library
-cd $OMRDIR && git clone https://github.com/microsoft/SEAL
+cd $OMRDIR && git clone https://github.com/wyunhao/SEAL
 cd SEAL
 cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$BUILDDIR -DSEAL_USE_INTEL_HEXL=ON 
 cmake --build build
