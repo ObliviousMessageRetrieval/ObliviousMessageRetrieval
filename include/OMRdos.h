@@ -20,6 +20,9 @@ void OMR3_dos() {
 	int numOfTransactions = numOfTransactions_glb;
 	int half_party_size = ceil(((double) party_size_glb) / 2.0);
 
+	OMRthreeM = default_bucket_num_glb * (num_of_pertinent_msgs_glb / 50);
+    repeatition_glb = OMRthreeM;
+
 	// cout << "half_party_size: " << half_party_size << endl;
 	int payload_size = 306;
 
@@ -557,8 +560,8 @@ void OMR3_dos() {
 	time_diff = chrono::duration_cast<chrono::microseconds>(time_end - time_start);
 	// cout << "\nRecipient running time: " << time_diff.count() << "us." << "\n";
 
-	/* cout << "EXPECTED -------------------------------------------------------- \n" << expected << endl; */
-	/* cout << "RESULT ---------------------------------------------------------- \n" << res << endl; */
+	/* cout << "EXPECTED -------------------------------------------------------- \n" << expected[0] << endl; */
+	/* cout << "RESULT ---------------------------------------------------------- \n" << res[0] << endl; */
 
 	if(checkRes(expected, res))
 		cout << "Result is correct!" << endl;
