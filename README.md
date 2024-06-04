@@ -20,7 +20,7 @@ As a building block, we analyze the snake-eye resistance property for general PK
     - main scheme DoS-PerfOMR (Section 7.4)
 - Parameters: N = 2^19 (or *N* = 500,000 padded to 2^19), k = *ḱ* = 50. Benchmark results on a Google Compute Cloud e2-standard-8 instance type (8 hyperthreads of an Intel Xeon 3.10 GHz CPU with 32GB RAM) are reported in Section 8 in DoS-PerfOMR paper
 - Measurement (with parameters in Section 8):
-    - <img src="dos_measurement.png" alt="dos_measurement" width="900"/>
+    - <img src="dos_runtime.png" alt="dos_measurement" width="900"/>
 
 
 ## Dependencies
@@ -29,14 +29,15 @@ The dos-PerfOMR library relies on the following:
 
 - C++ build environment
 - CMake build infrastructure
-- [SEAL](https://github.com/microsoft/SEAL) library 4.1 and all its dependencies \
-  Notice that we made some manual change on SEAL interfaces to facilitate our implementation and thus a built-in dependency of SEAL is directly included under 'build' directory.
+- [SEAL](https://github.com/wyunhao/SEAL) library 4.1 and all its dependencies \
+  Notice that we reply on a separate fork of the [original SEAL](https://github.com/microsoft/SEAL) library, which makes some manual change on SEAL interfaces,
+  since all the prior works use the fork version to facilitate their implementation, we also use this version.
 - [PALISADE](https://gitlab.com/palisade/palisade-release) library release v1.11.2 and all its dependencies,\
   as v1.11.2 is not publicly available anymore when this repository is made public, we use v1.11.3 in the instructions instead.
 - [NTL](https://libntl.org/) library 11.4.3 and all its dependencies
 - [OpenSSL](https://github.com/openssl/openssl) library on branch OpenSSL_1_1_1-stable \
    We use an old version of OpenSSL library for plain AES function without the complex EVP abstraction.
-- (Optional) [HEXL](https://github.com/intel/hexl) library 1.2.3
+- (Optional) [HEXL](https://github.com/intel/hexl) library 1.2.3 (this would accelerate the SEAL operations with an Intel AVX-512 processor)
 
 ### Scripts to install the dependencies and build the binary
 Notice that the following instructions are based on installation steps on a Ubuntu 20.04 LTS.
@@ -72,7 +73,8 @@ cd openssl
 make
 make install
 
-# SEAL library
+# a separate fork of SEAL library that overwrite some private functions, used in prior works
+# we also depend on this library to match with the prior works
 cd $OMRDIR && git clone https://github.com/wyunhao/SEAL
 cd SEAL
 cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$BUILDDIR -DSEAL_USE_INTEL_HEXL=ON 
@@ -104,8 +106,20 @@ cd $BUILDDIR
 ./OMRdemos dos <number_of_cores> <number_of_messages_in_bundle> <number_of_bundles> <number_of_pert_msgs>
 
 
-# to reproduce the main benchmark result:
-./OMRdemos dos 1 8 65536 50 
+# to reproduce the main benchmark result in Table 1 of our submission:
+./OMRdemos dos 1 8 65536 50
+./OMRdemos dos 2 8 65536 50
+
+# to reproduce the main benchmark result in Table 2 of our submission:
+./OMRdemos dos 1 8 65536 50
+./OMRdemos dos 1 8 65536 100
+./OMRdemos dos 1 8 65536 150
+./OMRdemos dos 1 8 65536 50
+./OMRdemos dos 1 8 262144 50
+./OMRdemos dos 1 8 1048576 50
+
+# to reproduce the attack described in section 6.1 in our submission:
+./OMRdemos dos-attack
 ```
 
 ### Sample Output
@@ -121,10 +135,10 @@ Pertient message indices: [ 3558 3683 3881 4099 4857 5142 5241 7165 7774 7806 80
 \
 Database and parameters prepared.
 
-Preprocess switching key time: 264900272 us.
-ClueToPackedPV time: 160386979 us.
-PVUnpack time: 675661388 us.
-ExpandedPVToDigest time: 218222953 us.
+Preprocess switching key time: 251541219 us.
+ClueToPackedPV time: 1669926636 us.
+PVUnpack time: 309490659 us.
+ExpandedPVToDigest time: 314739741 us.
 
-Detector running time: 965717410 us.
-Digest size: 568138 bytes
+Detector running time: 2597531678 us.
+Digest size: 1419844 bytes
