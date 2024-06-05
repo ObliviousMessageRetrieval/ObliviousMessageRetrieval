@@ -3,11 +3,15 @@
 
 ### Abstract:
 
-Oblivious message retrieval (OMR) allows messages resource-limited recipients to outsource the message retrieval process without revealing which messages are pertinent to which recipient. Its realizations in recent works leave an open problem: can an OMR scheme be both practical and provably secure against spamming attacks from malicious senders (i.e., DoS-resistant) under standard assumptions?  
+Oblivious message retrieval (OMR) allows messages resource-limited recipients to outsource the message retrieval process without revealing which messages are pertinent to which recipient.
+Its realizations in recent works leave an open problem:
+can an OMR scheme be both practical and provably secure against spamming attacks from malicious senders (i.e., DoS-resistant) under standard assumptions?
+    
+We present PerfOMR: a provably DoS-resistant OMR construction that is 12x faster than OMRp2 (a conjectured DoS-resistant OMR construction in prior works), and (almost) matches the performance of the state-of-the-art OMR scheme that is _not_ DoS-resistant (proven by the attacks we show)\thomas{Added the last sentence.
 
-In this work, we first prove that a prior construction OMRp2 is DoS-resistant under a standard LWE assumption, resolving an open conjecture of prior works. Then, we present DoS-PerfOMR: a provably DoS-resistant OMR construction that is 12x faster than OMRp2, and (almost) matches the performance of the state-of-the-art OMR scheme that is not DoS-resistant.
-
-As a building block, we analyze the snake-eye resistance property for general PKE schemes. We construct a new lattice-based PKE scheme, LWEmongrass that is provably snake-eye resistant and has better efficiency than the PVW scheme underlying OMRp2. We also show that the natural candidates (e.g., RingLWE PKE) are not snake-eye resistant. Of independent interest, we introduce two variants of LWE with side information, as components towards proving the properties of LWEmongrass, and reduce standard LWE to them for the parameters of interest.
+As a building block, we analyze the \textit{snake-eye resistance} property for general PKE schemes.
+We construct a new lattice-based PKE scheme, LWEmongrass that is provably snake-eye resistant and has better efficiency than the PVW scheme underlying OMRp2.
+We also show that the natural candidates (e.g., RingLWE PKE) are not snake-eye resistant.
 
 
 ## What's in the demo
@@ -17,9 +21,9 @@ As a building block, we analyze the snake-eye resistance property for general PK
 ### DoS-PerfOMR: DoS-resistance OMR
 - Obliviously identify the pertinent messages and pack all their contents into a into a single digest.
 - Schemes benchmarked (in DoS PerfOMR): 
-    - main scheme DoS-PerfOMR (Section 7.4)
-- Parameters: N = 2^19 (or *N* = 500,000 padded to 2^19), k = *ḱ* = 50. Benchmark results on a Google Compute Cloud e2-standard-8 instance type (8 hyperthreads of an Intel Xeon 3.10 GHz CPU with 32GB RAM) are reported in Section 8 in DoS-PerfOMR paper
-- Measurement (with parameters in Section 8):
+    - main scheme DoS-PerfOMR (Section 8.3)
+- Parameters: N = 2^19 (or *N* = 500,000 padded to 2^19), $m = \bar{m}$ = 50. Benchmark results on a Google Compute Cloud n4-standard-8 instance type with 32GB RAM are reported in Section 9 in our paper
+- Measurement (with parameters in Section 9):
     - <img src="dos_runtime.png" alt="dos_measurement" width="900"/>
 
 
@@ -30,8 +34,7 @@ The dos-PerfOMR library relies on the following:
 - C++ build environment
 - CMake build infrastructure
 - [SEAL](https://github.com/wyunhao/SEAL) library 4.1 and all its dependencies \
-  Notice that we reply on a separate fork of the [original SEAL](https://github.com/microsoft/SEAL) library, which makes some manual change on SEAL interfaces,
-  since all the prior works use the fork version to facilitate their implementation, we also use this version.
+  Notice that we rely on a separate fork of the [original SEAL](https://github.com/microsoft/SEAL) library, which makes some manual change on SEAL interfaces. This fork is used by prior works like [PerfOMR](https://eprint.iacr.org/2024/204), and since our implementation is based on PerfOMR's implementation, we also use this fork of library.
 - [PALISADE](https://gitlab.com/palisade/palisade-release) library release v1.11.2 and all its dependencies,\
   as v1.11.2 is not publicly available anymore when this repository is made public, we use v1.11.3 in the instructions instead.
 - [NTL](https://libntl.org/) library 11.4.3 and all its dependencies
@@ -74,7 +77,7 @@ make
 make install
 
 # a separate fork of SEAL library that overwrite some private functions, used in prior works
-# we also depend on this library to match with the prior works
+# we also depend on this library which is used by the prior work we are based on
 cd $OMRDIR && git clone https://github.com/wyunhao/SEAL
 cd SEAL
 cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$BUILDDIR -DSEAL_USE_INTEL_HEXL=ON 
