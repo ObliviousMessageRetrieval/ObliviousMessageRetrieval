@@ -198,13 +198,13 @@ void OMR3_dos() {
 
 	NTL_EXEC_RANGE(numcores, first, last);
 	chrono::high_resolution_clock::time_point s1, e1;
-	int t11 = 0, t22 = 0, bb_to_pv = 0;
+	uint64_t t11 = 0, t22 = 0, bb_to_pv = 0;
 	for(int i = first; i < last; i++){
 		counter[i] = numOfTransactions/numcores*i;
 
 		size_t j = 0;
 		while(j < numOfTransactions/numcores/poly_modulus_degree) {
-			// if(!i) cout << "Phase 1, Core " << i << ", Batch " << j << endl;
+			/* if(!i) cout << "Phase 1, Core " << i << ", Batch " << j << endl; */
 
 			Ciphertext packedSIC_temp;
 			s1 = chrono::high_resolution_clock::now();
@@ -549,7 +549,8 @@ void OMR3_dos() {
 	for(size_t q = 0; q < lhs_multi_ctr[0].size(); q++){
 		digsize += lhs_multi_ctr[0][q].save(data_streamdg2);
 	}
-	cout << "Digest size: " << digsize << " bytes" << endl;
+
+	cout << "Digest size: " << digsize << " bytes " << endl;
 
 	// step 5. receiver decoding
 	bipartiteGraphWeightsGeneration(bipartite_map_glb, weights_glb, numOfTransactions, OMRthreeM, repeatition_glb, seed_glb);

@@ -962,9 +962,12 @@ vector<vector<long>> receiverDecodingOMR3_omrtake3(vector<Ciphertext>& lhsCounte
     // 1. find pertinent indices
     map<int, pair<int, int>> pertinentIndices;
     decodeIndicesRandom_opt(pertinentIndices, lhsCounter, secret_key, context, partySize, slot_per_bucket);
-    for (map<int, pair<int, int>>::iterator it = pertinentIndices.begin(); it != pertinentIndices.end(); it++)
-    {
-        cout << it->first << "," << it->second.second << "  ";
+    if (attack) {
+      cout << "Detected message indices on user side: ";
+      for (map<int, pair<int, int>>::iterator it = pertinentIndices.begin(); it != pertinentIndices.end(); it++) {
+	cout << it->first << "  ";
+      }
+      cout << endl;
     }
     cout << std::endl;
 

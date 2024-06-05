@@ -2,6 +2,7 @@
 #include "seal/seal.h"
 using namespace seal;
 
+bool attack = false;
 int numcores = 4;
 int OMRtwoM = 100;
 

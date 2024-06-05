@@ -14,6 +14,7 @@ string FGOMR = "fgomr";
 string PERFOMR1 = "perfomr1";
 string PERFOMR2 = "perfomr2";
 string DOS = "dos";
+string DOS_ATTACK = "dos-attack"; // attack on perfomr
 
 int main(int argc, char* argv[]) {
     cout << "+------------------------------------+" << endl;
@@ -78,7 +79,15 @@ DEFAULT:
 	    party_size_glb = atoi(argv[3]);
 	    numOfTransactions_glb = atoi(argv[4]);
 	    num_of_pertinent_msgs_glb = atoi(argv[5]);
-        } else {
+        } else if (DOS_ATTACK.compare(argv[1]) == 0){
+	  selection = 35;
+	  attack = true;
+	  default_param_set = true;
+	  numcores = 1;
+	  party_size_glb = 2;
+	  numOfTransactions_glb = 32768;
+	  num_of_pertinent_msgs_glb = 50;
+	} else {
             goto DEFAULT;
         }
     }
@@ -248,9 +257,15 @@ DEFAULT:
             break;
 
 	case 34:
-		numcores = 1;
+		// numcores = 1;
 		OMR3_dos();
 		break;
+
+	case 35:
+	  for (int i = 0; i < 3; i++) {
+	    OMR3_opt();
+	  }
+	  break;
 
         case 0:
             return 0;

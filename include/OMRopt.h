@@ -47,11 +47,18 @@ void OMR3_opt() {
     vector<int> pertinentMsgIndices;
     auto expected = preparingTransactionsFormal_opt(pertinentMsgIndices, pk, numOfTransactions,
                                                     num_of_pertinent_msgs_glb,  params);
+
+    cout << "Pertient message indices: " << pertinentMsgIndices << endl;
     /* vector<vector<uint64_t>> expected = {{0}}; */
-    /* saveClues_opt_attack(params, 0); */
+    if (attack){
+      saveClues_opt_attack(params, 0);
+    }
 
     /* cout << expected.size() << " pertinent msg: Finishing preparing messages\n"; */
-    cout << "Pertient message indices: "<< pertinentMsgIndices << endl;
+    if (attack) {
+      cout << endl << "DoS attack on index zero.\n";
+    }
+    cout << "Pertient message indices with attack: " << pertinentMsgIndices << endl;
 
     // step 3. generate detection key
     // recipient side
@@ -240,7 +247,9 @@ void OMR3_opt() {
         evaluator.transform_to_ntt_inplace(rotated_switchingKey[i]);
     }
     e = chrono::high_resolution_clock::now();
-    cout << "Preprocess switching key time: " << chrono::duration_cast<chrono::microseconds>(e - s).count() << " us." << endl;
+    if (!attack) {
+      cout << "Preprocess switching key time: " << chrono::duration_cast<chrono::microseconds>(e - s).count() << " us." << endl;
+    }
 
     time_start = chrono::high_resolution_clock::now();
 
@@ -294,7 +303,9 @@ void OMR3_opt() {
         }
     }
 
-    cout << "ClueToPackedPV time: " << bb_to_pv << " us.\n";
+    if (!attack) {
+      cout << "ClueToPackedPV time: " << bb_to_pv << " us.\n";
+    }
     /* decryptor.decrypt(packedSICfromPhase1[0][0], pl); */
     /* batch_encoder.decode(pl, tm); */
     /* for (int c = 0; c < (int) degree; c++) { */
@@ -478,9 +489,10 @@ void OMR3_opt() {
       total_unpack += unpack_pv_time[i];
       total_digest += digest_encode_time[i];
     }
-    cout << "PVUnpack time: " << total_unpack - total_u << " us.\n";
-    cout << "ExpandedPVToDigest time: " << total_digest << " us.\n";
-
+    if (!attack) {
+      cout << "PVUnpack time: " << total_unpack - total_u << " us.\n";
+      cout << "ExpandedPVToDigest time: " << total_digest << " us.\n";
+    }
 
     /* cout << "** FINAL LHS NOISE before mod: " << decryptor.invariant_noise_budget(lhs_multi_ctr[0][0]) << endl; */
     /* cout << "** FINAL RHS NOISE before mod: " << decryptor.invariant_noise_budget(rhs_multi[0][0][0]) << endl; */
@@ -610,7 +622,9 @@ void OMR3_opt() {
     
     time_end = chrono::high_resolution_clock::now();
     time_diff = chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-    cout << "\nDetector running time: " << time_diff.count() - total_u << " us." << "\n";
+    if (!attack) {
+      cout << "\nDetector running time: " << time_diff.count() - total_u << " us." << "\n";
+    }
 
     digsize = 0;
     for (int c = 0; c < (int) num_ct_for_buckets; c++) {
