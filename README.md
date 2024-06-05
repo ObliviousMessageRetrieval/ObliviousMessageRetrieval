@@ -119,6 +119,9 @@ cd $BUILDDIR
 ./OMRdemos dos 1 8 1048576 50
 
 # to reproduce the attack described in section 6.1 in our submission:
+# notice that this is automatically run for three times to make sure that the attack works
+# in our submission, we report that the attack succeeded in all ten trials
+# this can be easily tested by re-run this command multiple times
 ./OMRdemos dos-attack
 ```
 
