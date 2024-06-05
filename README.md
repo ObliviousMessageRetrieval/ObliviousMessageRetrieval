@@ -7,7 +7,7 @@ Oblivious message retrieval (OMR) allows messages resource-limited recipients to
 Its realizations in recent works leave an open problem:
 can an OMR scheme be both practical and provably secure against spamming attacks from malicious senders (i.e., DoS-resistant) under standard assumptions?
     
-We present PerfOMR: a provably DoS-resistant OMR construction that is 12x faster than OMRp2 (a conjectured DoS-resistant OMR construction in prior works), and (almost) matches the performance of the state-of-the-art OMR scheme that is _not_ DoS-resistant (proven by the attacks we show)\thomas{Added the last sentence.
+We present PerfOMR: a provably DoS-resistant OMR construction that is 12x faster than OMRp2 (a conjectured DoS-resistant OMR construction in prior works), and (almost) matches the performance of the state-of-the-art OMR scheme that is _not_ DoS-resistant (proven by the attacks we show).
 
 As a building block, we analyze the \textit{snake-eye resistance} property for general PKE schemes.
 We construct a new lattice-based PKE scheme, LWEmongrass that is provably snake-eye resistant and has better efficiency than the PVW scheme underlying OMRp2.
