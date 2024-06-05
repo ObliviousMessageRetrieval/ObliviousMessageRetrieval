@@ -24,8 +24,7 @@ We also show that the natural candidates (e.g., RingLWE PKE) are not snake-eye r
     - main scheme DoS-PerfOMR (Section 8.3)
 - Parameters: N = 2^19 (or *N* = 500,000 padded to 2^19), $m = \bar{m}$ = 50. Benchmark results on a Google Compute Cloud n4-standard-8 instance type with 32GB RAM are reported in Section 9 in our paper
 - Measurement (with parameters in Section 9):
-    - <img src="dos_runtime.png" alt="dos_measurement" width="900"/>
-
+<img align="center" src="dos_runtime.png" width="950" height="90">
 
 ## Dependencies
 
