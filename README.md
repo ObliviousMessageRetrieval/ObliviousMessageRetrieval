@@ -11,8 +11,7 @@ We present PerfOMR: a provably DoS-resistant OMR construction that is 12x faster
 
 As a building block, we analyze the _snake-eye resistance_ property for general PKE schemes.
 We construct a new lattice-based PKE scheme, LWEmongrass that is provably snake-eye resistant and has better efficiency than the PVW scheme underlying OMRp2.
-Note that the major change we made in this implementation based on prior work (i.e., perfOMR) is the clue key and clue genberation; all other building blocks for the main functionality of OMR are essentially the same.
-Other building blocks (including clue key/detection key/clue generations) for retrievak are directly inherited from prior works.
+Note that the major change we made in this implementation compared to prior work (i.e., perfOMR, see below) is the clue key and clue generation; all other building blocks for the main functionality of OMR are mainly the same and thus we only made small changes to accmondate our parameter changes.
 We also show that the natural candidates (e.g., RingLWE PKE) are not snake-eye resistant.
 
 
