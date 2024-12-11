@@ -9,8 +9,10 @@ can an OMR scheme be both practical and provably secure against spamming attacks
     
 We present PerfOMR: a provably DoS-resistant OMR construction that is 12x faster than OMRp2 (a conjectured DoS-resistant OMR construction in prior works), and (almost) matches the performance of the state-of-the-art OMR scheme that is _not_ DoS-resistant (proven by the attacks we show).
 
-As a building block, we analyze the \textit{snake-eye resistance} property for general PKE schemes.
+As a building block, we analyze the _snake-eye resistance_ property for general PKE schemes.
 We construct a new lattice-based PKE scheme, LWEmongrass that is provably snake-eye resistant and has better efficiency than the PVW scheme underlying OMRp2.
+Note that the major change we made in this implementation based on prior work (i.e., perfOMR) is the clue key and clue genberation; all other building blocks for the main functionality of OMR are essentially the same.
+Other building blocks (including clue key/detection key/clue generations) for retrievak are directly inherited from prior works.
 We also show that the natural candidates (e.g., RingLWE PKE) are not snake-eye resistant.
 
 
