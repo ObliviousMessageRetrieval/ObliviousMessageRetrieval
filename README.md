@@ -1,7 +1,7 @@
 # DoS-resistant Oblivious Message Retrieval from Snake-eye Resistant PKE
 
 
-### Abstract:
+### Overview:
 
 Oblivious message retrieval (OMR) allows messages resource-limited recipients to outsource the message retrieval process without revealing which messages are pertinent to which recipient.
 Its realizations in recent works leave an open problem:
@@ -25,11 +25,13 @@ We also show that the natural candidates (e.g., RingLWE PKE) are not snake-eye r
     - main scheme DoS-PerfOMR (Section 8.3)
 - Parameters: N = 2^19 (or *N* = 500,000 padded to 2^19), $m = \bar{m}$ = 50. Benchmark results on a Google Compute Cloud n4-standard-8 instance type with 32GB RAM are reported in Section 9 in our paper
 - Measurement (with parameters in Section 9):
-<img align="center" src="dos_runtime.png" width="950" height="90">
+<img align="center" src="figures/dos_runtime.png" width="950" height="90">
+
+- Source code is in the header files in the include folder.
 
 ## Dependencies
 
-The dos-PerfOMR library relies on the following:
+The DoS-PerfOMR library relies on the following:
 
 - C++ build environment
 - CMake build infrastructure
