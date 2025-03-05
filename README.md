@@ -53,7 +53,7 @@ sudo apt-get update && sudo apt-get install build-essential # if needed
 sudo apt-get install autoconf # if no autoconf
 sudo apt-get install cmake # if no cmake
 sudo apt-get install libgmp3-dev # if no gmp
-sudo apt-get install libntl-dev=11.4.3-1build1 # if no ntl
+sudo apt-get install libntl-dev # if no ntl; specify version to be 11.4.3-1build1 if not found
 sudo apt-get install unzip # if no unzip
 
 # If you have the DOS_code.zip directly, put it under ~/OMR and unzip it into ObliviousMessageRetrieval dir, otherwise:
