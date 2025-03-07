@@ -60,7 +60,7 @@ sudo apt-get install libntl-dev # specify version to be 11.4.3-1build1 if not fo
 sudo apt-get install unzip
 
 # If you have the DOS_code.zip directly, put it under ~/OMR and unzip it into ObliviousMessageRetrieval dir, otherwise:
-git clone --branch eu_25_artifact --single-branch https://github.com/ObliviousMessageRetrieval/ObliviousMessageRetrieval.git
+git clone --branch ec25 --single-branch https://github.com/ObliviousMessageRetrieval/ObliviousMessageRetrieval.git
 
  # change build_path to where you want the dependency libraries installed
 OMRDIR=~/OMR  
@@ -134,7 +134,7 @@ cd $BUILDDIR
 ```
 
 ### Sample Output for Normal Benchmark
-Running the command ```$./OMRdemos dos 1 2 32768 50``` would get the following sample output:
+Running the command ```./OMRdemos dos 1 2 32768 50``` would get the following sample output:
 ```
 Preparing database and paramaters...
 Pertient message indices: [ 3558 3683 3881 4099 4857 5142 5241 7165 7774 7806 8085 8375 8381 8597 8608 8769 9119 9960 10478 10689 10928 12291 12937 13238 15021 16730 16929 19011 19745 20384 21812 22398 22565 23523 23913 24844 24929 25352 25687 26401 27076 27309 27372 28726 30793 31006 31344 31838 32077 32215 ]
@@ -159,7 +159,7 @@ Result is correct!
 ```
 
 ### Sample Output for DoS Attack
-Running the command ```$./OMRdemos dos-attack``` would get the following sample output:
+Running the command ```./OMRdemos dos-attack``` would get the following sample output:
 ```
 Preparing database and paramaters...
 Pertient message indices: [ 886 2272 2776 4244 5973 6603 6885 8562 8898 9377 10141 10374 10790 11101 12852 12992 13043 13077 13549 14793 15298 15729 16491 17013 17440 17524
