@@ -14,6 +14,8 @@ We construct a new lattice-based PKE scheme, LWEmongrass that is provably snake-
 Note that the major change we made in this implementation compared to prior work (i.e., PerfOMR, see below) is the clue key and clue generation; all other building blocks for the main functionality of OMR are mainly the same and thus we only made small changes to accmondate our parameter changes.
 We also show that the natural candidates (e.g., RingLWE PKE) are not snake-eye resistant.
 
+This library serves as the implementation for the DoS OMR scheme in the [paper](https://eprint.iacr.org/2024/510).
+
 
 ## What's in the demo
 
@@ -49,15 +51,15 @@ Notice that the following instructions are based on installation steps on a Ubun
 ```
 # If permission required, please add sudo before the commands as needed
 
-sudo apt-get update && sudo apt-get install build-essential # if needed
-sudo apt-get install autoconf # if no autoconf
-sudo apt-get install cmake # if no cmake
-sudo apt-get install libgmp3-dev # if no gmp
-sudo apt-get install libntl-dev # if no ntl; specify version to be 11.4.3-1build1 if not found
-sudo apt-get install unzip # if no unzip
+sudo apt-get update && sudo apt-get install build-essential
+sudo apt-get install autoconf
+sudo apt-get install cmake
+sudo apt-get install libgmp3-dev
+sudo apt-get install libntl-dev # specify version to be 11.4.3-1build1 if not found
+sudo apt-get install unzip
 
 # If you have the DOS_code.zip directly, put it under ~/OMR and unzip it into ObliviousMessageRetrieval dir, otherwise:
-gh repo clone ObliviousMessageRetrieval/ObliviousMessageRetrieval
+git clone --branch eu_25_artifact --single-branch https://github.com/ObliviousMessageRetrieval/ObliviousMessageRetrieval.git
 
  # change build_path to where you want the dependency libraries installed
 OMRDIR=~/OMR  
@@ -131,6 +133,7 @@ cd $BUILDDIR
 ```
 
 ### Sample Output for Normal Benchmark
+Running the command ```$./OMRdemos dos 1 2 32768 50``` would get the following sample output:
 ```
 Preparing database and paramaters...
 Pertient message indices: [ 3558 3683 3881 4099 4857 5142 5241 7165 7774 7806 8085 8375 8381 8597 8608 8769 9119 9960 10478 10689 10928 12291 12937 13238 15021 16730 16929 19011 19745 20384 21812 22398 22565 23523 23913 24844 24929 25352 25687 26401 27076 27309 27372 28726 30793 31006 31344 31838 32077 32215 ]
@@ -155,6 +158,7 @@ Result is correct!
 ```
 
 ### Sample Output for DoS Attack
+Running the command ```$./OMRdemos dos-attack``` would get the following sample output:
 ```
 Preparing database and paramaters...
 Pertient message indices: [ 886 2272 2776 4244 5973 6603 6885 8562 8898 9377 10141 10374 10790 11101 12852 12992 13043 13077 13549 14793 15298 15729 16491 17013 17440 17524
