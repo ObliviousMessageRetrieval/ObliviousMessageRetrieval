@@ -27,7 +27,8 @@ This library serves as the implementation for the DoS OMR scheme in the [paper](
     - main scheme DoS-PerfOMR (Section 8.3)
 - Parameters: N = 2^19 (or *N* = 500,000 padded to 2^19), $m = \bar{m}$ = 50. Benchmark results on a Google Compute Cloud n4-standard-8 instance type with 32GB RAM are reported in Section 9 in our paper
 - Measurement (with parameters in Section 9):
-<img align="center" src="figures/dos_runtime.png" width="950" height="90">
+<img align="center" src="figures/dos_runtime.png" width="950" height="112">
+<img align="center" src="figures/dos_scale.png" width="930" height="380">
 
 - Source code is in the header files in the include folder.
 
@@ -113,11 +114,11 @@ cd $BUILDDIR
 ./OMRdemos dos <number_of_cores> <number_of_messages_in_bundle> <number_of_bundles> <number_of_pert_msgs>
 
 
-# to reproduce the main benchmark result in Table 1 of our submission:
+# to reproduce the main benchmark result in Table 1 shown above:
 ./OMRdemos dos 1 8 65536 50
 ./OMRdemos dos 2 8 65536 50
 
-# to reproduce the main benchmark result in Table 2 of our submission:
+# to reproduce the main benchmark result in Table 2 shown above:
 ./OMRdemos dos 1 8 65536 50
 ./OMRdemos dos 1 8 65536 100
 ./OMRdemos dos 1 8 65536 150
