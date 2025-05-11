@@ -538,7 +538,8 @@ void OMR3_dos() {
 
 	time_end = chrono::high_resolution_clock::now();
 	time_diff = chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-	cout << "\nDetector running time: " << time_diff.count() << "us." << "\n";
+	cout << "\nDetector running time: " << time_diff.count() << " us." << "\n";
+	cout << "\nDetector running time amortized per message: " << (float) time_diff.count() / (float) numOfTransactions_glb << " us." << "\n";
 
 	digsize = 0;
 	for (int c = 0; c < (int) num_ct_for_buckets; c++) {
@@ -551,6 +552,7 @@ void OMR3_dos() {
 	}
 
 	cout << "Digest size: " << digsize << " bytes " << endl;
+	cout << "Digest size amortized per message: " << (float) digsize / (float) numOfTransactions_glb << " bytes " << endl;
 
 	// step 5. receiver decoding
 	bipartiteGraphWeightsGeneration(bipartite_map_glb, weights_glb, numOfTransactions, OMRthreeM, repeatition_glb, seed_glb);
