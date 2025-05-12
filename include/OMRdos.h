@@ -539,7 +539,7 @@ void OMR3_dos() {
 	time_end = chrono::high_resolution_clock::now();
 	time_diff = chrono::duration_cast<chrono::microseconds>(time_end - time_start);
 	cout << "\nDetector running time: " << time_diff.count() << " us." << "\n";
-	cout << "\nDetector running time amortized per message: " << (float) time_diff.count() / (float) (numOfTransactions_glb * party_size_glb * 1000) << " ms." << "\n";
+	cout << "Detector running time amortized per message: " << (float) time_diff.count() / (float) (numOfTransactions_glb * party_size_glb * 1000) << " ms." << "\n";
 
 	digsize = 0;
 	for (int c = 0; c < (int) num_ct_for_buckets; c++) {
