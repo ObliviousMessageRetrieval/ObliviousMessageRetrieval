@@ -862,6 +862,72 @@ void newRangeCheckPVW(vector<Ciphertext>& output, const int& range, const RelinK
 }
 
 
+////////////////////////////////////////////////////// FOR super fast OMR together with PIR /////////////////////////////////////////////
+
+// compute b - aSK 
+void computeBplusAS_omr_pir(vector<Ciphertext>& output, const vector<OPVWCiphertext>& toPack, vector<Ciphertext>& switchingKeys,
+							const SEALContext& context, const OPVWParam& param) {
+	MemoryPoolHandle my_pool = MemoryPoolHandle::New(true);
+	auto old_prof = MemoryManager::SwitchProfile(std::make_unique<MMProfFixed>(std::move(my_pool)));
+
+	Evaluator evaluator(context);
+	BatchEncoder batch_encoder(context);
+
+	vector<vector<Ciphertext>> tmp(param.ell, vector<Ciphertext>(param.n));
+
+	for (int i = 0; i < param.n; i++) {
+		for (int l = 0; l < param.ell; l++) {
+			Plaintext plainInd;
+			plainInd.resize(poly_modulus_degree_glb);
+			plainInd.parms_id() = parms_id_zero;
+			for (int j = 0; j < (int) poly_modulus_degree_glb; j++) {
+				if (j >= (int) toPack.size()) {
+					plainInd.data()[j] = 0;
+				} else {
+					if (i <= l) { // positive part
+						plainInd.data()[j] = toPack[j].a[l - i].ConvertToInt();
+					} else { // negative part
+						plainInd.data()[j] = bfv_Q - toPack[j].a[param.n - (i - l)].ConvertToInt();
+					}
+				}
+				if (j == 0 && l == 0) cout << plainInd.data()[j] << " ";
+			}
+
+			// evaluator.transform_to_ntt_inplace(plainInd, switchingKeys[i].parms_id());
+			evaluator.multiply_plain(switchingKeys[i], plainInd, tmp[l][i]);
+		}
+	}
+	cout << "After a*sk... \n";
+
+	for (int i = 0; i < param.ell; i++) { // aggregate to a*sk and transfrom back from ntt
+		for (int j = 1; j < param.n; j++) {
+			evaluator.add_inplace(tmp[i][0], tmp[i][j]);
+		}
+		evaluator.transform_from_ntt_inplace(tmp[i][0]);
+	}
+	cout << "After aggregating and transform ntt... \n";
+
+	for(int l = 0; l < param.ell; l++){
+		Plaintext plainInd;
+		plainInd.resize(poly_modulus_degree_glb);
+		plainInd.parms_id() = parms_id_zero;
+		for (int i = 0; i < (int) poly_modulus_degree_glb; i++) {
+			if (i >= (int) toPack.size()) {
+				plainInd.data()[i] = 0;
+			} else {
+				plainInd.data()[i] = toPack[i].b[l].ConvertToInt();
+			}
+		}
+		evaluator.negate(tmp[l][0], output[l]);
+		evaluator.add_plain_inplace(output[l], plainInd);
+	}
+	cout << "After subtracting from b... \n";
+
+	MemoryManager::SwitchProfile(std::move(old_prof));
+}
+
+
+
 
 ////////////////////////////////////////////////////// FOR OMR Optimization with RLWE clues /////////////////////////////////////////////
 

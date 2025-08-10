@@ -65,6 +65,35 @@ namespace omr
     }
 }
 
+namespace omr_pir
+{
+    vector<Ciphertext> generateRotatedDetectionKeys(const SEALContext& context, const size_t& degree,
+                                                    const PublicKey& BFVpk, const SecretKey& BFVsk,
+                                                    const OPVWsk& regSk, const OPVWParam& params) {
+        
+        vector<Ciphertext> switchingKeys(params.n);
+
+        BatchEncoder batch_encoder(context);
+        Encryptor encryptor(context, BFVpk);
+        encryptor.set_secret_key(BFVsk);
+        Evaluator evaluator(context);
+
+        for (int cnt = 0; cnt < (int) switchingKeys.size(); cnt++) {
+            Plaintext plainInd;
+            plainInd.resize(degree);
+            plainInd.parms_id() = parms_id_zero;
+            for (size_t i = 0; i < degree; i++){
+                plainInd.data()[i] = 0;
+            }
+            plainInd.data()[0] = regSk[cnt].ConvertToInt(); // a constant polynomial encoding each element of sk
+            encryptor.encrypt_symmetric(plainInd, switchingKeys[cnt]);
+            evaluator.transform_to_ntt_inplace(switchingKeys[cnt]);
+        }
+
+        return switchingKeys;
+    }
+}
+
 namespace omr_take3
 {
     Ciphertext generateDetectionKeyForOPVWsk(const SEALContext& context, const size_t& degree,

@@ -390,10 +390,10 @@ void OMR3_opt() {
                 /* cout << "Phase 2-3, Core " << i << ", Batch " << j << endl; */
             loadPackedData(payload_multicore[i], counter[i], counter[i]+poly_modulus_degree, payload_size*2, half_party_size);
             vector<Ciphertext> templhsctr;
-	    vector<vector<Ciphertext>> temprhs(num_ct_for_buckets);
-	    for (int c = 0; c < (int) num_ct_for_buckets; c++) {
-	      temprhs[c].resize(half_party_size);
-	    }
+            vector<vector<Ciphertext>> temprhs(num_ct_for_buckets);
+            for (int c = 0; c < (int) num_ct_for_buckets; c++) {
+                temprhs[c].resize(half_party_size);
+            }
 	    
             Ciphertext curr_PackSIC(packedSICfromPhase1[i][j]);
             s1 = chrono::high_resolution_clock::now();

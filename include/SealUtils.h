@@ -473,15 +473,15 @@ Ciphertext slotToCoeff_WOPrepreocess_time(const SEALContext& context, const SEAL
       time_start = chrono::high_resolution_clock::now();
       vector<uint64_t> U_tmp(degree);
       for (int i = 0; i < degree; i++) {
-	int row_index = (i-iter) % (degree/2) < 0 ? (i-iter) % (degree/2) + degree/2 : (i-iter) % (degree/2);
-	row_index = i < degree/2 ? row_index : row_index + degree/2;
-	int col_index = (i + j*sq_rt) % (degree/2);
-	if (j < (int) ct_sqrt_list.size() / 2) { // first half
-	  col_index = i < degree/2 ? col_index : col_index + degree/2;
-	} else {
-	  col_index = i < degree/2 ? col_index + degree/2 : col_index;
-	}
-	U_tmp[i] = ((uint64_t) (U[row_index][col_index] * scalar)) % q;
+        int row_index = (i-iter) % (degree/2) < 0 ? (i-iter) % (degree/2) + degree/2 : (i-iter) % (degree/2);
+        row_index = i < degree/2 ? row_index : row_index + degree/2;
+        int col_index = (i + j*sq_rt) % (degree/2);
+        if (j < (int) ct_sqrt_list.size() / 2) { // first half
+            col_index = i < degree/2 ? col_index : col_index + degree/2;
+        } else {
+            col_index = i < degree/2 ? col_index + degree/2 : col_index;
+        }
+        U_tmp[i] = ((uint64_t) (U[row_index][col_index] * scalar)) % q;
       }
       writeUtemp(U_tmp, j*sq_rt + iter);
 
@@ -493,11 +493,11 @@ Ciphertext slotToCoeff_WOPrepreocess_time(const SEALContext& context, const SEAL
       total_U += chrono::duration_cast<chrono::microseconds>(time_end - time_start).count();
 
       if (j == 0) {
-	evaluator.multiply_plain(ct_sqrt_list[j], U_plain, result[iter]);
+	    evaluator.multiply_plain(ct_sqrt_list[j], U_plain, result[iter]);
       } else {
-	Ciphertext temp;
-	evaluator.multiply_plain(ct_sqrt_list[j], U_plain, temp);
-	evaluator.add_inplace(result[iter], temp);
+        Ciphertext temp;
+        evaluator.multiply_plain(ct_sqrt_list[j], U_plain, temp);
+        evaluator.add_inplace(result[iter], temp);
       }
     }
   }

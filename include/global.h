@@ -17,11 +17,13 @@ int repeatition_glb = 53;
 
 int num_bucket_glb = 400;
 
-int bfv_Q = 65537;
+int bfv_Q = 786433;
 
 // 19 for perfomr default param set, 81 for dos omr
 int range_check_r = 19;
 int range_check_r_dos = 80;
+
+int range_check_pir = 40;
 
 int step_size_glb = 32; // used for oblivious expansion
 
@@ -33,8 +35,8 @@ vector<vector<int>> weights_glb;
 
 prng_seed_type seed_glb;
 size_t C_glb = 5;
-int numOfTransactions_glb = 65536;
-size_t poly_modulus_degree_glb = 32768;
+size_t poly_modulus_degree_glb = 2048;
+int numOfTransactions_glb = 2048;
 size_t num_of_pertinent_msgs_glb = 50;
 
 vector<uint64_t> unpack_pv_time;
