@@ -887,11 +887,12 @@ void computeBplusAS_omr_pir(vector<Ciphertext>& output, const vector<OPVWCiphert
 					if (i <= l) { // positive part
 						plainInd.data()[j] = toPack[j].a[l - i].ConvertToInt();
 					} else { // negative part
-						plainInd.data()[j] = bfv_Q - toPack[j].a[param.n - (i - l)].ConvertToInt();
+						plainInd.data()[j] = (bfv_Q - toPack[j].a[param.n - (i - l)].ConvertToInt()) % bfv_Q;
 					}
 				}
 				if (j == 0 && l == 0) cout << plainInd.data()[j] << " ";
 			}
+			// cout << endl << i << ", " << l << endl;
 
 			// evaluator.transform_to_ntt_inplace(plainInd, switchingKeys[i].parms_id());
 			evaluator.multiply_plain(switchingKeys[i], plainInd, tmp[l][i]);

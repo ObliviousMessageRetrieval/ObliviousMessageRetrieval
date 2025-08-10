@@ -124,12 +124,10 @@ void OMR_pir() {
         while (j < num_of_ct) {
 
             vector<Ciphertext> packedSIC_temp(params.ell);
-            for (int p = 0; p < party_size_glb; p++) {
-                loadClues_OPVW(SICPVW_multicore[i], counter[i], counter[i]+poly_modulus_degree, params);
+            loadClues_OPVW(SICPVW_multicore[i], counter[i], counter[i]+poly_modulus_degree, params);
 
-                computeBplusAS_omr_pir(packedSIC_temp, SICPVW_multicore[i], switchingKeys,
-                                       context, params);
-            }
+            computeBplusAS_omr_pir(packedSIC_temp, SICPVW_multicore[i], switchingKeys,
+                                    context, params);
             for (int ll = 0; ll < params.ell; ll++) {
                 packedSICfromPhase1[i][ll][j] = packedSIC_temp[ll];
             }
