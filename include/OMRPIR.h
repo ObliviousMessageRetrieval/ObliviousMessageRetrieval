@@ -33,7 +33,7 @@ void OMR_pir() {
 
     // step 1. generate OPVW sk
     // recipient side
-    auto params = OPVWParam(1024, 786433, 0.5, 2, 80);
+    auto params = OPVWParam(1024, bfv_Q, 0.5, 2, 80);
 
     auto sk = OPVWGenerateSecretKey(params);
     auto pk = OPVWGeneratePublicKey(params, sk);
@@ -43,7 +43,7 @@ void OMR_pir() {
     // recipient side
     EncryptionParameters parms(scheme_type::bfv);
     parms.set_poly_modulus_degree(poly_modulus_degree);
-    auto coeff_modulus = CoeffModulus::Create(poly_modulus_degree, { 60, 60}); // ideally just 56, since we have no relin/rot key
+    auto coeff_modulus = CoeffModulus::Create(poly_modulus_degree, { 60}); // ideally just 56, since we have no relin/rot key
 
     parms.set_coeff_modulus(coeff_modulus);
     parms.set_plain_modulus(bfv_Q);
@@ -58,19 +58,19 @@ void OMR_pir() {
     SEALContext context(parms, true, sec_level_type::none);
     /* cout << "primitive root: " << context.first_context_data()->plain_ntt_tables()->get_root() << endl; */
     print_parameters(context); 
-    KeyGenerator keygen(context);
+    KeyGenerator keygen(context, 128);
     SecretKey secret_key = keygen.secret_key();
 
     PublicKey public_key;
     keygen.create_public_key(public_key);
-    RelinKeys relin_keys;
-    keygen.create_relin_keys(relin_keys);
+    // RelinKeys relin_keys;
+    // keygen.create_relin_keys(relin_keys);
     Encryptor encryptor(context, public_key);
     Evaluator evaluator(context);
     Decryptor decryptor(context, secret_key);
     BatchEncoder batch_encoder(context);
 
-    cout << "SK: " << sk << endl;
+    // cout << "SK: " << sk << endl;
     vector<Ciphertext> switchingKeys = omr_pir::generateRotatedDetectionKeys(context, poly_modulus_degree, public_key, secret_key, sk, params);
 
 
@@ -124,7 +124,10 @@ void OMR_pir() {
         while (j < num_of_ct) {
 
             vector<Ciphertext> packedSIC_temp(params.ell);
+            s1 = chrono::high_resolution_clock::now();
             loadClues_OPVW(SICPVW_multicore[i], counter[i], counter[i]+poly_modulus_degree, params);
+            e1 = chrono::high_resolution_clock::now();
+            sg += chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
 
             computeBplusAS_omr_pir(packedSIC_temp, SICPVW_multicore[i], switchingKeys,
                                     context, params);
@@ -143,14 +146,46 @@ void OMR_pir() {
 
     time_end = chrono::high_resolution_clock::now();
     time_diff = chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-    cout << "\nDetector running time: " << time_diff.count() << " us." << "\n";
+    cout << "\nDetector running time: " << time_diff.count() - sg << " us." << "\n";
 
-    Plaintext ppp;
-    for (int i = 0; i < params.ell; i++) {
-        decryptor.decrypt(packedSICfromPhase1[0][i][0], ppp);
-        for (int j = 0; j < (int) poly_modulus_degree; j++) {
-            cout << ppp.data()[j] << " ";
-        }
-        cout << endl;
+    // Plaintext ppp;
+    // for (int i = 0; i < params.ell; i++) {
+    //     decryptor.decrypt(packedSICfromPhase1[0][i][0], ppp);
+    //     for (int j = 0; j < (int) poly_modulus_degree; j++) {
+    //         cout << ppp.data()[j] << " ";
+    //     }
+    //     cout << endl;
+    // }
+
+    // below is for confirming the above two primes
+    vector<uint64_t> sk_mod(poly_modulus_degree_glb);
+    uint64_t big_prime = 0;
+    inverse_ntt_negacyclic_harvey(secret_key.data().data(), context.key_context_data()->small_ntt_tables()[0]);
+    int i = 0;
+    while (!big_prime) {
+        big_prime = secret_key.data()[i] > 1 ? secret_key.data()[i] : 0;
+        i++;
     }
+    cout << endl;
+    for (int i = 0; i < (int) poly_modulus_degree_glb; i++) {
+        sk_mod[i] = secret_key.data()[i] > 1 ? bfv_Q - 1 : secret_key.data()[i];
+    }
+    seal::util::RNSIter new_key_rns(secret_key.data().data(), poly_modulus_degree_glb);
+    ntt_negacyclic_harvey(new_key_rns, coeff_modulus.size(), context.key_context_data()->small_ntt_tables());
+
+
+    vector<vector<bfvCiphertext>> mod_res(params.ell);
+    for (int i = 0; i < params.ell; i++) {
+        mod_res[i] = manual_mod_bfv_ciphertext(packedSICfromPhase1[0][i][0], numOfTransactions_glb, big_prime+1, bfv_Q);
+    }
+
+    vector<int> decoded_res = decode_pertinent_indices_omr_pir(mod_res, sk_mod);
+
+    cout << "Decoded pertinent msgs: ---------------\n";
+    for (int i = 0; i < (int) decoded_res.size(); i++) {
+        if (decoded_res[i]) cout << i << ", ";
+    }
+    cout << endl;
+
+
 }

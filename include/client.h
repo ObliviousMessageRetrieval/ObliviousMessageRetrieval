@@ -484,3 +484,28 @@ vector<vector<long>> equationSolvingRandomBatch(vector<vector<int>>& lhs, vector
 
     return batched_res;
 }
+
+vector<int> decode_pertinent_indices_omr_pir(vector<vector<bfvCiphertext>>& res, vector<uint64_t>& sk, uint64_t p = bfv_Q,
+                                             uint64_t error_range = range_check_pir) {
+    vector<int> decoded_indices(res[0].size());
+
+    for (int i = 0; i < (int) res[0].size(); i++) {
+        bool is_not_pertinent = false; // default to pertinent
+        for (int l = 0; l < (int) res.size(); l++) {
+        // for (int l = 0; l < 1; l++) {
+            uint64_t tmp_res = 0;
+            for (int iter = 0; iter < (int) poly_modulus_degree_glb; iter++) {
+                tmp_res += (res[l][i].a[iter].ConvertToInt() * sk[iter]) % p;
+                tmp_res = (tmp_res) % p;
+            }
+            tmp_res = tmp_res + res[l][i].b.ConvertToInt();
+            tmp_res = tmp_res % p;
+            is_not_pertinent = is_not_pertinent || (tmp_res > range_check_pir && tmp_res < bfv_Q - range_check_pir);
+            // decoded_indices[i] = (int) tmp_res;
+        }
+        
+        decoded_indices[i] = (int) !is_not_pertinent;
+    }
+
+    return decoded_indices;
+}

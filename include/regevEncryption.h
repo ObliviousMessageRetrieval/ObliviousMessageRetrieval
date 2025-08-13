@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SealUtils.h"
+#include "global.h"
 #include "math/ternaryuniformgenerator.h"
 #include "math/discreteuniformgenerator.h"
 #include "math/discretegaussiangenerator.h"
@@ -26,6 +27,11 @@ struct regevParam{
 };
 
 typedef NativeVector regevSK;
+
+struct bfvCiphertext {
+    NativeVector a;
+    NativeInteger b;
+};
 
 struct regevCiphertext{
     NativeVector a;
@@ -551,4 +557,54 @@ void PVWDec(vector<int>& msg, const PVWCiphertext& ct, const PVWsk& sk, const PV
         r.ModEq(q);
         msg[j] = (r < q/2)? 0 : 1;
     }
+}
+
+
+
+vector<bfvCiphertext> manual_mod_bfv_ciphertext(Ciphertext& rlwe_ct, int ell, uint64_t big_prime, const int small_p) {
+    vector<bfvCiphertext> results(ell);
+
+    prng_seed_type seed;
+    for (auto &i : seed) {
+        i = random_uint64();
+    }
+    auto rng = std::make_shared<Blake2xbPRNGFactory>(Blake2xbPRNGFactory(seed));
+    RandomToStandardAdapter engine(rng->create());
+    uniform_int_distribution<uint32_t> dist(0, 100);
+
+    for (int cnt = 0; cnt < ell; cnt++) {
+        results[cnt].a = NativeVector(poly_modulus_degree_glb);
+        int ind = 0;
+        for (int i = cnt; i >= 0 && ind < (int) poly_modulus_degree_glb; i--) {
+            float temp_f = ((float) rlwe_ct.data(1)[i]) * ((float) small_p) / ((long double) big_prime);
+            uint32_t decimal = (temp_f - ((int) temp_f)) * 100;
+            float rounding = dist(engine) < decimal ? 1 : 0;
+
+            long temp = ((int) (temp_f + rounding)) % small_p;
+            results[cnt].a[ind] = temp < 0 ? small_p + temp : temp;
+
+            ind++;
+        }
+
+        for (int i = poly_modulus_degree_glb-1; i > cnt && ind < (int) poly_modulus_degree_glb; i--) {
+            float temp_f = ((float) rlwe_ct.data(1)[i]) * ((float) small_p) / ((long double) big_prime);
+            uint32_t decimal = (temp_f - ((int) temp_f)) * 100;
+            float rounding = dist(engine) < decimal ? 1 : 0;
+
+            long temp = ((int) (temp_f + rounding)) % small_p;
+            results[cnt].a[ind] = -temp < 0 ? small_p-temp : -temp;
+
+            ind++;
+        }
+
+        
+        float temp_f = ((float) rlwe_ct.data(0)[cnt]) * ((float) small_p) / ((long double) big_prime);
+        uint32_t decimal = temp_f - ((int) temp_f) * 100;
+        float rounding = dist(engine) < decimal ? 1 : 0;
+
+        long temp = ((int) (temp_f + rounding)) % small_p;
+        results[cnt].b = temp % ((int) small_p);
+    }
+
+    return results;
 }

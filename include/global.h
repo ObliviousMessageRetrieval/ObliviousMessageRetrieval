@@ -17,13 +17,13 @@ int repeatition_glb = 53;
 
 int num_bucket_glb = 400;
 
-int bfv_Q = 786433;
+int bfv_Q = 1032193;
 
 // 19 for perfomr default param set, 81 for dos omr
 int range_check_r = 19;
 int range_check_r_dos = 80;
 
-int range_check_pir = 40;
+uint64_t range_check_pir = 149;
 
 int step_size_glb = 32; // used for oblivious expansion
 
@@ -61,6 +61,9 @@ int batch_cm_glb = 32768; // used for load expanded clues bulk by bulk to fit in
 
 // Used for OpenSSL AES ECB mode
 int AES_KEY_SIZE = 16;
+
+uint64_t sg = 0;
+uint64_t se = 0;
 
 vector<uint64_t> expectedIndices;
 

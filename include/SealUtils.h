@@ -5,6 +5,7 @@
 
 #include "seal/seal.h"
 #include "seal/util/polyarithsmallmod.h"
+#include "regevEncryption.h"
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -590,3 +591,4 @@ uint64_t manual_mod_down_rounding(uint64_t init, uint32_t rounding_bit, const ui
     long temp = ((int) (temp_f + rounding)) % small_p;
     return temp < 0 ? small_p + temp : temp;
 }
+

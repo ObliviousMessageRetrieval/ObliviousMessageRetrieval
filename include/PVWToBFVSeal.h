@@ -875,8 +875,11 @@ void computeBplusAS_omr_pir(vector<Ciphertext>& output, const vector<OPVWCiphert
 
 	vector<vector<Ciphertext>> tmp(param.ell, vector<Ciphertext>(param.n));
 
+	chrono::high_resolution_clock::time_point s1, e1;
+
 	for (int i = 0; i < param.n; i++) {
 		for (int l = 0; l < param.ell; l++) {
+			s1 = chrono::high_resolution_clock::now();
 			Plaintext plainInd;
 			plainInd.resize(poly_modulus_degree_glb);
 			plainInd.parms_id() = parms_id_zero;
@@ -890,19 +893,28 @@ void computeBplusAS_omr_pir(vector<Ciphertext>& output, const vector<OPVWCiphert
 						plainInd.data()[j] = (bfv_Q - toPack[j].a[param.n - (i - l)].ConvertToInt()) % bfv_Q;
 					}
 				}
-				if (j == 0 && l == 0) cout << plainInd.data()[j] << " ";
+				// if (j == 0 && l == 0) cout << plainInd.data()[j] << " ";
 			}
 			// cout << endl << i << ", " << l << endl;
 
-			// evaluator.transform_to_ntt_inplace(plainInd, switchingKeys[i].parms_id());
+			evaluator.transform_to_ntt_inplace(plainInd, switchingKeys[i].parms_id());
+			e1 = chrono::high_resolution_clock::now();
+			sg += chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
+			s1 = chrono::high_resolution_clock::now();
 			evaluator.multiply_plain(switchingKeys[i], plainInd, tmp[l][i]);
+			e1 = chrono::high_resolution_clock::now();
+
+			if (i == 0 && l == 0) cout << "		Multi plain: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl;
 		}
 	}
 	cout << "After a*sk... \n";
 
 	for (int i = 0; i < param.ell; i++) { // aggregate to a*sk and transfrom back from ntt
 		for (int j = 1; j < param.n; j++) {
+			s1 = chrono::high_resolution_clock::now();
 			evaluator.add_inplace(tmp[i][0], tmp[i][j]);
+			e1 = chrono::high_resolution_clock::now();
+			if (i == 0 && j == 1) cout << "		Add plain: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl;
 		}
 		evaluator.transform_from_ntt_inplace(tmp[i][0]);
 	}
@@ -920,7 +932,11 @@ void computeBplusAS_omr_pir(vector<Ciphertext>& output, const vector<OPVWCiphert
 			}
 		}
 		evaluator.negate(tmp[l][0], output[l]);
+		s1 = chrono::high_resolution_clock::now();
 		evaluator.add_plain_inplace(output[l], plainInd);
+		e1 = chrono::high_resolution_clock::now();
+
+		// if (l == 1) cout << "Add plain: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
 	}
 	cout << "After subtracting from b... \n";
 
