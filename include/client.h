@@ -495,12 +495,12 @@ vector<int> decode_pertinent_indices_omr_pir(vector<vector<bfvCiphertext>>& res,
         // for (int l = 0; l < 1; l++) {
             uint64_t tmp_res = 0;
             for (int iter = 0; iter < (int) poly_modulus_degree_glb; iter++) {
-                tmp_res += (res[l][i].a[iter].ConvertToInt() * sk[iter]) % p;
+                tmp_res += ((uint64_t) res[l][i].a[iter].ConvertToInt() * (uint64_t) sk[iter]) % (uint64_t) p;
                 tmp_res = (tmp_res) % p;
             }
             tmp_res = tmp_res + res[l][i].b.ConvertToInt();
             tmp_res = tmp_res % p;
-            is_not_pertinent = is_not_pertinent || (tmp_res > range_check_pir && tmp_res < bfv_Q - range_check_pir);
+            is_not_pertinent = is_not_pertinent || (tmp_res > range_check_pir && tmp_res < p - range_check_pir);
             // decoded_indices[i] = (int) tmp_res;
         }
         
