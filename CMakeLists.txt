@@ -49,6 +49,6 @@ else()
     link_libraries( ${PALISADE_SHARED_LIBRARIES} )
 endif()
 
-add_executable( OMRdemos main.cpp )
+add_executable( OMRdemos server.cpp )
 
 target_link_libraries(OMRdemos SEAL::seal ntl m gmp OpenSSL::Crypto)
