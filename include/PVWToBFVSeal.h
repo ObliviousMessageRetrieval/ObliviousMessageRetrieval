@@ -895,7 +895,6 @@ void computeBplusAS_omr_pir(vector<Ciphertext>& output, const vector<OPVWCiphert
 				}
 				// if (j == 0 && l == 0) cout << plainInd.data()[j] << " ";
 			}
-			// cout << endl << i << ", " << l << endl;
 
 			evaluator.transform_to_ntt_inplace(plainInd, switchingKeys[i].parms_id());
 			e1 = chrono::high_resolution_clock::now();
@@ -904,7 +903,6 @@ void computeBplusAS_omr_pir(vector<Ciphertext>& output, const vector<OPVWCiphert
 			evaluator.multiply_plain(switchingKeys[i], plainInd, tmp[l][i]);
 			e1 = chrono::high_resolution_clock::now();
 
-			if (i == 0 && l == 0) cout << "		Multi plain: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl;
 		}
 	}
 	cout << "After a*sk... \n";
@@ -914,7 +912,6 @@ void computeBplusAS_omr_pir(vector<Ciphertext>& output, const vector<OPVWCiphert
 			s1 = chrono::high_resolution_clock::now();
 			evaluator.add_inplace(tmp[i][0], tmp[i][j]);
 			e1 = chrono::high_resolution_clock::now();
-			if (i == 0 && j == 1) cout << "		Add plain: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl;
 		}
 		evaluator.transform_from_ntt_inplace(tmp[i][0]);
 	}

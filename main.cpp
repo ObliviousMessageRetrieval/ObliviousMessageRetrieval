@@ -22,6 +22,10 @@ int main(int argc, char* argv[]) {
     cout << "| Benchmark Test                     |" << endl;
     cout << "+------------------------------------+" << endl;
 
+    pir_pertinent_glb = std::stoi(argv[1]);
+    pir_db_size_glb = std::stoi(argv[2]);
+    pir_db_entry_size_glb = std::stoi(argv[3]);
+
     OMR_pir();
 
     return 0;

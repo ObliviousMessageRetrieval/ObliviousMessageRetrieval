@@ -220,13 +220,13 @@ void OMR3_dos() {
 								     poly_modulus_degree, context, params, poly_modulus_degree);
 				// cout << "** Noise after phase 1: " << decryptor.invariant_noise_budget(packedSIC_temp) << endl;
 
-				// decryptor.decrypt(packedSIC_temp, pl);
-				// batch_encoder.decode(pl, tm);
-				// cout << "SIC after rangeCheck: ------------------------------ \n";
-				// for (int c = 0; c < (int) 100; c++) {
-				//     cout << tm[c] << " ";
-				// }
-				// cout << endl;
+				decryptor.decrypt(packedSIC_temp, pl);
+				batch_encoder.decode(pl, tm);
+				cout << "SIC after rangeCheck: ------------------------------ \n";
+				for (int c = 0; c < (int) 100; c++) {
+				    cout << tm[c] << " ";
+				}
+				cout << endl;
 
 				if (p == 0){
 					packedSICfromPhase1[i][j] = packedSIC_temp;

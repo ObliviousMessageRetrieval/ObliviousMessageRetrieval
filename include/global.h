@@ -48,6 +48,10 @@ vector<uint64_t> unpack_pv_time;
 vector<uint64_t> digest_encode_time;
 vector<uint64_t> process_u_time;
 
+size_t pir_pertinent_glb = 50;
+size_t pir_db_size_glb = 1<<19;
+size_t pir_db_entry_size_glb = 612;
+
 // (root, ring_dim) --> root^(2*ring_dim) % 65537 = 1
 // (4, 8), (2, 16), (255, 32), (141, 128), (431, 512), (21, 2048), (15, 8192), (9, 16384), (3, 32768) with prime = 65537
 // (8, 65536), (5, 131072) with prime = 786433

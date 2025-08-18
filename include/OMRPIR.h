@@ -148,7 +148,7 @@ void OMR_pir() {
 
     time_end = chrono::high_resolution_clock::now();
     time_diff = chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-    cout << "\nDetector running time: " << time_diff.count() - sg << " us." << "\n";
+    // cout << "\nDetector running time: " << time_diff.count() - sg << " us." << "\n";
 
     // Plaintext ppp;
     // for (int i = 0; i < params.ell; i++) {
@@ -178,6 +178,7 @@ void OMR_pir() {
     ntt_negacyclic_harvey(new_key_rns, coeff_modulus.size(), context.key_context_data()->small_ntt_tables());
 
 
+    time_start = chrono::high_resolution_clock::now();
     vector<vector<bfvCiphertext>> mod_res(params.ell);
     for (int i = 0; i < params.ell; i++) {
         // mod_res[i] = manual_mod_bfv_ciphertext(packedSICfromPhase1[0][i][0], numOfTransactions_glb, big_prime+1, bfv_Q);
@@ -185,15 +186,25 @@ void OMR_pir() {
         mod_res[i] = manual_mod_bfv_ciphertext(packedSICfromPhase1[0][i][0], numOfTransactions_glb, big_prime+1, bfv_Q_prime);
     }
 
-    vector<int> decoded_res = decode_pertinent_indices_omr_pir(mod_res, sk_mod, bfv_Q_prime);
+    time_end = chrono::high_resolution_clock::now();
+    time_diff += chrono::duration_cast<chrono::microseconds>(time_end - time_start);
+    cout << "OMR Detector running time: " << time_diff.count() - sg << " us." << "\n";
+    // vector<int> decoded_res = decode_pertinent_indices_omr_pir(mod_res, sk_mod, bfv_Q_prime);
 
-    cout << "Decoded pertinent msgs: ---------------\n";
-    for (int i = 0; i < (int) decoded_res.size(); i++) {
-        if (decoded_res[i]) cout << i << ", ";
-    }
-    cout << endl;
+    // cout << "Decoded pertinent msgs: ---------------\n";
+    // for (int i = 0; i < (int) decoded_res.size(); i++) {
+    //     if (decoded_res[i]) cout << i << ", ";
+    // }
+    // cout << endl;
 
     // cout << decoded_res << endl;
 
+    string command = "../pir/vectorized_batchpir/build/bin/vectorized_batch_pir "+to_string(pir_pertinent_glb)+" "+to_string(pir_db_size_glb)+" "+to_string(pir_db_entry_size_glb);
+
+    int ret = std::system(command.c_str());
+
+    if (ret != 0) {
+        cout << "Error when running pir.\n";
+    }
 
 }
