@@ -96,7 +96,11 @@ int vectorized_pir_main(int argc, char *argv[])
     // Print the elapsed time in milliseconds
     std::cout << "generate_response time: " << elapsed_time.count() << " ms" << std::endl;
 
+    start_time = std::chrono::high_resolution_clock::now();
     auto entries = client.single_pir_decode_responses(response);
+    end_time = std::chrono::high_resolution_clock::now();
+    std::cout << "PIR recipient time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << std::endl;
+
 
     server.check_decoded_entries(entries, entry_indices);
 
@@ -209,16 +213,16 @@ int batchpir_main(int argc, char* argv[])
     // cout << "Main: Response generation complete for example " << (iteration + 1) << "." << endl;
 
     // cout << "Main: Checking decoded entries for example " << (iteration + 1) << "..." << endl;
+    start = chrono::high_resolution_clock::now();
     auto decode_responses = batch_client.decode_responses_chunks(responses);
-
     communication_list.push_back(batch_client.get_serialized_commm_size());
-
     auto cuckoo_table = batch_client.get_cuckoo_table();
-
-    // if (batch_server.check_decoded_entries(decode_responses, cuckoo_table))
-    // {
-    //     cout << "Main: All the entries matched!!" << endl;
-    // }
+    if (batch_server.check_decoded_entries(decode_responses, cuckoo_table))
+    {
+        cout << "Main: All the entries matched!!" << endl;
+    }
+    end = chrono::high_resolution_clock::now();
+    std::cout << "PIR recipient time: " << chrono::duration_cast<chrono::milliseconds>(end - start).count() << " milliseconds.\n";
 
     cout << endl;
 }
