@@ -216,7 +216,7 @@ void OMR3_dos() {
 				t11 += chrono::duration_cast<chrono::microseconds>(e - s).count();
 
 				s = chrono::high_resolution_clock::now();
-				packedSIC_temp = obtainPackedSIC_dos(secret_key, SICPVW_multicore[i], rotated_switchingKey, relin_keys, gal_keys,
+				packedSIC_temp = obtainPackedSIC_dos(SICPVW_multicore[i], rotated_switchingKey, relin_keys, gal_keys,
 								     poly_modulus_degree, context, params, poly_modulus_degree);
 				// cout << "** Noise after phase 1: " << decryptor.invariant_noise_budget(packedSIC_temp) << endl;
 

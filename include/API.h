@@ -6,40 +6,57 @@
 #include <cstring>
 #include <iomanip>
 
+#include <memory>
+#include <cassert>
+
+// --- Global, single source of truth for SEAL context ---
+namespace ddctx {
+    inline bool ready = false;
+    inline std::shared_ptr<seal::SEALContext> g_ctx;
+
+    // Store a single process-wide context
+    inline void set(const seal::SEALContext& ctx) {
+        g_ctx = std::make_shared<seal::SEALContext>(ctx); // cheap copy
+        ready = true;
+    }
+
+    inline const seal::SEALContext& ctx() {
+        assert(ready && "ddctx not initialized; call init_deaddrop() first");
+        return *g_ctx;
+    }
+
+    // (Optional) Access to parms if you ever need them, without storing separately
+    inline const seal::EncryptionParameters& parms() {
+        return ddctx::ctx().key_context_data()->parms();
+    }
+}
+
 // ==================================
 // ======= Main API functions =======
 // ==================================
 
-// Generates sk1 and pk_clue
-std::pair<srPKEsk, srPKEpk> gen_OMR_PKE()
+// Generates sk_decode, pk_clue, pk_detect, and context for SEAL
+std::tuple<SecretKey, srPKEpk, vector<Ciphertext>> init_deaddrop()
 {
+    // Generate first PKE pair
     auto params = srPKEParam();
     auto sk = srPKEGenerateSecretKey(params);
-    auto pk = srPKEGeneratePublicKey(params, sk);
-    return std::make_pair(sk, pk);
-}
+    auto pk_clue = srPKEGeneratePublicKey(params, sk);
 
-// Generates clue from pk_clue
-srPKECiphertext gen_clue(const srPKEpk &pk)
-{
-    auto params = srPKEParam();
-    vector<int> zeros(params.ell, 0);
-    srPKECiphertext clue;
-    srPKEEncPK(clue, zeros, pk, params);
-    return clue;
-}
+    // Create clueDB
+    int numOfTransactions = 32768;
+    int num_of_pertinent_msgs = 0;
+    int party_size_local = 1;
+    vector<int> pertinentMsgIndices;
+    auto expected = preparingTransactionsFormal_dos(pertinentMsgIndices, sk, pk_clue, numOfTransactions, num_of_pertinent_msgs, params, party_size_local);
+    cout << "Created clue DB with dummy clues and random pertinent clues" << endl;
+    cout << "Pertient message indices: " << pertinentMsgIndices << endl;
 
-// Generates pk_detect and sk_decode from sk1
-std::tuple<vector<Ciphertext>, SecretKey, SEALContext> gen_pk_detect(const srPKEsk &sk)
-{
-    // Global variables
+    // Configurating SEAL encryption for second PKE pair for FHE (sk_decode)
     size_t poly_modulus_degree_glb = 32768;
     size_t poly_modulus_degree = poly_modulus_degree_glb;
     int t = 65537;
 
-    auto params = srPKEParam();
-
-    // Configurating SEAL encryption
     EncryptionParameters parms(scheme_type::bfv);
     parms.set_poly_modulus_degree(poly_modulus_degree);
     auto coeff_modulus = CoeffModulus::Create(poly_modulus_degree, {40, 60, 60, 60, 60,
@@ -58,81 +75,42 @@ std::tuple<vector<Ciphertext>, SecretKey, SEALContext> gen_pk_detect(const srPKE
 
     SEALContext context(parms, true, sec_level_type::none);
     KeyGenerator keygen(context);
-    SecretKey secret_key = keygen.secret_key();
+    SecretKey sk_decode = keygen.secret_key();
     PublicKey public_key;
     keygen.create_public_key(public_key);
 
-    // Create switchingKey (pk_detect)
-    vector<Ciphertext> switchingKey = omr_dos::generateDetectionKey(context, poly_modulus_degree, public_key,
-                                                                    secret_key, sk, params);
+    // Create pk_detect
+    vector<Ciphertext> pk_detect = omr_dos::generateDetectionKey(context, poly_modulus_degree, public_key,
+                                                                 sk_decode, sk, params);
 
-    // Create secret_key_small (sk_decode)
-    // auto degree = poly_modulus_degree;
+    ddctx::set(context);
 
-    // EncryptionParameters bfv_params_small(scheme_type::bfv);
-    // bfv_params_small.set_poly_modulus_degree(degree);
-    // auto coeff_modulus_small = CoeffModulus::Create(degree, {28, 60});
-    // bfv_params_small.set_coeff_modulus(coeff_modulus_small);
-    // bfv_params_small.set_plain_modulus(t);
-
-    // bfv_params_small.set_random_generator(rng);
-    // SEALContext seal_context_small(bfv_params_small, true, sec_level_type::none);
-    // KeyGenerator keygen_small(seal_context_small);
-
-    // SecretKey secret_key_small = keygen_small.secret_key();
-
-    // uint64_t small_p = 268369920;
-    // uint64_t large_p = 1099510054912;
-
-    // inverse_ntt_negacyclic_harvey(secret_key.data().data(), context.key_context_data()->small_ntt_tables()[0]);
-    // inverse_ntt_negacyclic_harvey(secret_key_small.data().data(), seal_context_small.key_context_data()->small_ntt_tables()[0]);
-    // for (int i = 0; i < (int)degree; i++)
-    // {
-    //     secret_key_small.data()[i] = (secret_key.data()[i] == large_p) ? small_p : secret_key.data()[i];
-    // }
-    // seal::util::RNSIter new_key_rns_small1(secret_key_small.data().data(), degree);
-    // ntt_negacyclic_harvey(new_key_rns_small1, coeff_modulus_small.size(), seal_context_small.key_context_data()->small_ntt_tables());
-
-    // Return just the base keys - server will handle rotation
-    return std::make_tuple(switchingKey, secret_key, context);
+    return std::make_tuple(sk_decode, pk_clue, pk_detect);
 }
 
-void print_digest(const vector<uint64_t> &values, int x = 2000)
+// Generates clue from pk_clue
+srPKECiphertext gen_clue(const srPKEpk &pk_clue)
 {
-    cout << "First " << x << " values: ";
-    for (int i = 0; i < x && i < values.size(); i++)
-    {
-        cout << values[i] << " ";
-    }
-    cout << endl;
-}
-
-void print_nonzero_indices(const std::vector<uint64_t> &values)
-{
-    std::cout << "Indices with non-zero values: ";
-    for (std::size_t i = 0; i < values.size(); i++)
-    {
-        if (values[i] != 0)
-        {
-            std::cout << i << " ";
-        }
-    }
-    std::cout << std::endl;
+    auto params = srPKEParam();
+    vector<int> zeros(params.ell, 0);
+    srPKECiphertext clue;
+    srPKEEncPK(clue, zeros, pk_clue, params);
+    return clue;
 }
 
 // Generates encrypted digest over the whole DB
-Ciphertext gen_encrypted_digest(srPKEsk &sk, srPKEpk &pk, const vector<Ciphertext> &switchingKey, SecretKey &secret_key, const SEALContext &context)
+Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
 {
-    // Global variables
     auto numOfTransactions = 32768;
     auto numcores = 1;
     auto poly_modulus_degree = 32768;
     auto params = srPKEParam();
     int t = 65537;
+    int party_size_local = 1;
 
+    const auto& context = ddctx::ctx();
     Evaluator evaluator(context);
-    KeyGenerator keygen(context, secret_key);
-    Decryptor decryptor(context, secret_key);
+    KeyGenerator keygen(context);
     BatchEncoder batch_encoder(context);
 
     RelinKeys relin_keys;
@@ -143,38 +121,17 @@ Ciphertext gen_encrypted_digest(srPKEsk &sk, srPKEpk &pk, const vector<Ciphertex
 
     vector<int> counter(numcores);
     vector<vector<srPKECiphertext>> SICPVW_multicore(numcores);
-    cout << "1" << endl;
-
-    // Set up clues and payloads
-    int party_size_local = 1;
-    int half_party_size = ceil(((double)party_size_local) / 2.0);
-    int payload_size = 306;
-    createDatabase(numOfTransactions, payload_size * 2);
-    cout << "created dummy payloads" << endl;
-
-    vector<int> pertinentMsgIndices;
-    auto expected = preparingTransactionsFormal_dos(pertinentMsgIndices, sk, pk, numOfTransactions, num_of_pertinent_msgs_glb, params, party_size_local);
-    cout << "created dummy and pertinent clues" << endl;
-    cout << "Pertient message indices: " << pertinentMsgIndices << endl;
 
     // Retrieve digest
     vector<vector<Ciphertext>> packedSICfromPhase1(numcores, vector<Ciphertext>(numOfTransactions / numcores / poly_modulus_degree));
-    // Assume numOfTransactions/numcores/poly_modulus_degree is integer, pad if needed
 
     NTL::SetNumThreads(numcores);
     SecretKey secret_key_blank;
-
-    chrono::high_resolution_clock::time_point time_start, time_end, s, e;
-    chrono::microseconds time_diff;
-
-    Plaintext pl;
-    vector<uint64_t> tm(poly_modulus_degree);
 
     int tempn;
     for (tempn = 1; tempn < params.n1; tempn *= 2)
     {
     }
-    cout << "2" << endl;
 
     // prepare pre-processed switching key and store to disk
     vector<vector<Ciphertext>> rotated_switchingKey;
@@ -185,13 +142,10 @@ Ciphertext gen_encrypted_digest(srPKEsk &sk, srPKEpk &pk, const vector<Ciphertex
 
         rotated_switchingKey.resize(params.ell);
 
-        s = chrono::high_resolution_clock::now();
-        cout << "Begin creating rotating switching key from pk_detect" << endl;
-        /* Ciphertext curr, next; */
         for (int l = 0; l < params.ell; l++)
         {
             rotated_switchingKey[l].resize(tempn);
-            rotated_switchingKey[l][0] = switchingKey[l];
+            rotated_switchingKey[l][0] = pk_detect[l];
 
             for (int i = 1; i < tempn; i++)
             {
@@ -202,15 +156,8 @@ Ciphertext gen_encrypted_digest(srPKEsk &sk, srPKEpk &pk, const vector<Ciphertex
                 evaluator.transform_to_ntt_inplace(rotated_switchingKey[l][i]);
             }
         }
-        e = chrono::high_resolution_clock::now();
-        cout << "Prepare switching key time: " << chrono::duration_cast<chrono::microseconds>(e - s).count() << endl;
-
-        time_start = chrono::high_resolution_clock::now();
-        cout << "3" << endl;
 
         NTL_EXEC_RANGE(numcores, first, last);
-        chrono::high_resolution_clock::time_point s1, e1;
-        uint64_t t11 = 0, t22 = 0, bb_to_pv = 0;
         for (int i = first; i < last; i++)
         {
             counter[i] = numOfTransactions / numcores * i;
@@ -218,39 +165,14 @@ Ciphertext gen_encrypted_digest(srPKEsk &sk, srPKEpk &pk, const vector<Ciphertex
             size_t j = 0;
             while (j < numOfTransactions / numcores / poly_modulus_degree)
             {
-                /* if(!i) cout << "Phase 1, Core " << i << ", Batch " << j << endl; */
-
                 Ciphertext packedSIC_temp;
-                s1 = chrono::high_resolution_clock::now();
+
                 for (int p = 0; p < party_size_local; p++)
                 {
-
-                    s = chrono::high_resolution_clock::now();
                     loadClues_dos(SICPVW_multicore[i], counter[i], counter[i] + poly_modulus_degree, params, p, party_size_local);
-                    // loadClues_dos(SICPVW_multicore[i], counter[i], counter[i] + poly_modulus_degree, params);
-                    e = chrono::high_resolution_clock::now();
-                    t11 += chrono::duration_cast<chrono::microseconds>(e - s).count();
 
-                    s = chrono::high_resolution_clock::now();
-                    packedSIC_temp = obtainPackedSIC_dos(secret_key, SICPVW_multicore[i], rotated_switchingKey, relin_keys, gal_keys,
+                    packedSIC_temp = obtainPackedSIC_dos(SICPVW_multicore[i], rotated_switchingKey, relin_keys, gal_keys,
                                                          poly_modulus_degree, context, params, poly_modulus_degree);
-                    cout << "** Noise after phase 1: " << decryptor.invariant_noise_budget(packedSIC_temp) << endl;
-
-                    decryptor.decrypt(packedSIC_temp, pl);
-                    batch_encoder.decode(pl, tm);
-
-                    size_t hits = 0;
-                    for (auto v : tm)
-                        if (v % t)
-                            ++hits;
-                    std::cerr << "[dbg] hits in this party/batch = " << hits << "\n";
-
-                    // cout << "SIC after rangeCheck: ------------------------------ \n";
-                    // for (int c = 0; c < (int)100; c++)
-                    // {
-                    //     cout << tm[c] << " ";
-                    // }
-                    // cout << endl;
 
                     if (p == 0)
                     {
@@ -260,19 +182,12 @@ Ciphertext gen_encrypted_digest(srPKEsk &sk, srPKEpk &pk, const vector<Ciphertex
                     {
                         evaluator.add_inplace(packedSICfromPhase1[i][j], packedSIC_temp);
                     }
-                    e = chrono::high_resolution_clock::now();
-                    t22 += chrono::duration_cast<chrono::microseconds>(e - s).count();
                 }
                 j++;
                 counter[i] += poly_modulus_degree;
                 SICPVW_multicore[i].clear();
-                e1 = chrono::high_resolution_clock::now();
-                bb_to_pv += chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
-                // cout << "BB to PV time: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count() << endl;
             }
         }
-
-        cout << "ClueToPackedPV time: " << bb_to_pv << " us.\n";
 
         NTL_EXEC_RANGE_END;
 
@@ -286,7 +201,6 @@ Ciphertext gen_encrypted_digest(srPKEsk &sk, srPKEpk &pk, const vector<Ciphertex
 
         MemoryManager::SwitchProfile(std::move(old_prof));
     }
-    cout << "4" << endl;
 
     // Compression to get a single ciphertext as output
     int determinCounter = 0;
@@ -310,25 +224,15 @@ Ciphertext gen_encrypted_digest(srPKEsk &sk, srPKEpk &pk, const vector<Ciphertex
             determinCounter++;
         }
     }
-    // // Decrypt the ciphertext
-    // Plaintext plaintext_digest;
-    // decryptor.decrypt(res, plaintext_digest);
 
-    // // Decode to get the raw values
-    // vector<uint64_t> decoded_digest;
-    // batch_encoder.decode(plaintext_digest, decoded_digest);
-
-    // print_digest(decoded_digest);
-    // print_nonzero_indices(decoded_digest);
-    // print_nonzero_indices_logical(decoded_digest, /*t=*/65537, /*n=*/poly_modulus_degree);
-
-    // return decoded_digest;
     return res;
 }
 
-vector<uint64_t> decode_digest(const Ciphertext &encrypted_digest, const SecretKey &secret_key, const SEALContext &context)
+// Decodes encrypted digest using sk_decode and SEAL context
+vector<uint64_t> decode_digest(const Ciphertext &encrypted_digest, const SecretKey &sk_decode)
 {
-    Decryptor decryptor(context, secret_key);
+    const auto& context = ddctx::ctx();
+    Decryptor decryptor(context, sk_decode);
     BatchEncoder batch_encoder(context);
     // Decrypt the ciphertext
     Plaintext plaintext_digest;
@@ -341,154 +245,37 @@ vector<uint64_t> decode_digest(const Ciphertext &encrypted_digest, const SecretK
     return decoded_digest;
 }
 
-// ===========================================================
-// ======= Serialization and deserialization functions =======
-// ===========================================================
-std::vector<uint8_t> serialize_clue_binary(const srPKECiphertext &clue)
-{
-    std::vector<uint8_t> buffer;
-
-    // Helper lambda to append uint64_t to buffer in little-endian
-    auto append_uint64 = [&buffer](uint64_t value)
-    {
-        for (int i = 0; i < 8; i++)
-        {
-            buffer.push_back((value >> (i * 8)) & 0xFF);
-        }
-    };
-
-    // Serialize vector a
-    size_t len_a = clue.a.GetLength();
-    uint64_t mod_a = clue.a.GetModulus().ConvertToInt();
-
-    append_uint64(len_a);
-    append_uint64(mod_a);
-
-    for (size_t i = 0; i < len_a; i++)
-    {
-        append_uint64(clue.a[i].ConvertToInt());
+// Submits clue to index i in clueDB
+bool submit_clue(const srPKECiphertext &clue, int index) {
+    try {
+        saveClues_dos(clue, index);
+        return true;  // Success
+    } catch (const std::exception &e) {
+        return false;  // Failed
     }
-
-    // Serialize vector b
-    size_t len_b = clue.b.GetLength();
-    uint64_t mod_b = clue.b.GetModulus().ConvertToInt();
-
-    append_uint64(len_b);
-    append_uint64(mod_b);
-
-    for (size_t i = 0; i < len_b; i++)
-    {
-        append_uint64(clue.b[i].ConvertToInt());
-    }
-
-    return buffer;
-}
-
-srPKECiphertext deserialize_clue_binary(const std::vector<uint8_t> &buffer)
-{
-    if (buffer.size() < 32)
-    { // Minimum: 4 * 8 bytes for lengths and moduli
-        throw std::runtime_error("Buffer too small for srPKECiphertext deserialization");
-    }
-
-    size_t offset = 0;
-
-    // Helper lambda to read uint64_t from buffer in little-endian
-    auto read_uint64 = [&buffer, &offset]() -> uint64_t
-    {
-        if (offset + 8 > buffer.size())
-        {
-            throw std::runtime_error("Buffer underflow during deserialization");
-        }
-        uint64_t value = 0;
-        for (int i = 0; i < 8; i++)
-        {
-            value |= (static_cast<uint64_t>(buffer[offset + i]) << (i * 8));
-        }
-        offset += 8;
-        return value;
-    };
-
-    srPKECiphertext clue;
-
-    // Deserialize vector a
-    uint64_t len_a = read_uint64();
-    uint64_t mod_a = read_uint64();
-
-    NativeInteger modulus_a(mod_a);
-    clue.a = NativeVector(len_a, modulus_a);
-
-    for (size_t i = 0; i < len_a; i++)
-    {
-        uint64_t elem = read_uint64();
-        clue.a[i] = NativeInteger(elem);
-    }
-
-    // Deserialize vector b
-    uint64_t len_b = read_uint64();
-    uint64_t mod_b = read_uint64();
-
-    NativeInteger modulus_b(mod_b);
-    clue.b = NativeVector(len_b, modulus_b);
-
-    for (size_t i = 0; i < len_b; i++)
-    {
-        uint64_t elem = read_uint64();
-        clue.b[i] = NativeInteger(elem);
-    }
-
-    return clue;
 }
 
 // ==================================
 // ======= Printing functions =======
 // ==================================
-void print_srPKECiphertext(const srPKECiphertext &ct, const string &label = "CLUE")
+void PrintSecretKeyDecode(const seal::SecretKey& sk, size_t max_to_print = 16)
 {
-    cout << "=== " << label << " ===" << endl;
+    const auto &pt = sk.data();
+    size_t count = std::min(max_to_print, pt.coeff_count());
 
-    // Print vector 'a'
-    cout << "Vector a (size " << ct.a.GetLength() << "): ";
-    for (int i = 0; i < min(15, (int)ct.a.GetLength()); i++)
+    std::cout << "SecretKey coefficients (first " << count << "): [";
+    for (size_t i = 0; i < count; ++i)
     {
-        cout << ct.a[i] << " ";
+        std::cout << pt[i];
+        if (i + 1 != count)
+            std::cout << ", ";
     }
-    if (ct.a.GetLength() > 15)
-        cout << "... (+" << (ct.a.GetLength() - 15) << " more)";
-    cout << endl;
-
-    // Print vector 'b'
-    cout << "Vector b (size " << ct.b.GetLength() << "): ";
-    for (int i = 0; i < min(15, (int)ct.b.GetLength()); i++)
-    {
-        cout << ct.b[i] << " ";
-    }
-    if (ct.b.GetLength() > 15)
-        cout << "... (+" << (ct.b.GetLength() - 15) << " more)";
-    cout << endl;
-    cout << endl;
+    if (pt.coeff_count() > count)
+        std::cout << ", ...";
+    std::cout << "]\n";
 }
 
-void print_secret_key(const srPKEsk &sk)
-{
-    cout << "=== SECRET KEY ===" << endl;
-    cout << "Number of vectors: " << sk.size() << endl;
-    for (int i = 0; i < sk.size(); i++)
-    {
-        cout << "Vector " << i << " (size " << sk[i].GetLength() << "): ";
-        // Print first 10 elements to avoid spam
-        for (int j = 0; j < min(10, (int)sk[i].GetLength()); j++)
-        {
-            cout << sk[i][j] << " ";
-        }
-        if (sk[i].GetLength() > 10)
-            cout << "...";
-        cout << endl;
-    }
-    cout << endl;
-}
-
-void print_public_key(const srPKEpk &pk)
+void PrintPublicKeyClue(const srPKEpk &pk)
 {
     cout << "=== PUBLIC KEY ===" << endl;
     cout << "Number of ciphertexts: " << pk.size() << endl;
@@ -518,22 +305,7 @@ void print_public_key(const srPKEpk &pk)
     cout << endl;
 }
 
-void print_binary(const std::vector<uint8_t> &binary_clue)
-{
-    std::cout << "Binary[" << binary_clue.size() << "]: ";
-    for (size_t i = 0; i < std::min(size_t(32), binary_clue.size()); i++)
-    {
-        std::cout << std::hex << std::setw(2) << std::setfill('0')
-                  << static_cast<int>(binary_clue[i]);
-    }
-    if (binary_clue.size() > 32)
-    {
-        std::cout << "...";
-    }
-    std::cout << std::dec << std::endl;
-}
-
-void print_switching_key(const vector<Ciphertext> &switchingKey)
+void PrintPublicKeyDetect(const vector<Ciphertext> &switchingKey)
 {
     cout << "\n=== Switching Key Information ===" << endl;
     cout << "Number of switching keys: " << switchingKey.size() << endl;
@@ -575,38 +347,87 @@ void print_switching_key(const vector<Ciphertext> &switchingKey)
          << endl;
 }
 
-void print_secret_key_small(const SecretKey &secret_key_small)
+void PrintClue(const srPKECiphertext &ct, const string &label = "CLUE")
 {
-    const auto &sk_data = secret_key_small.data();
-    size_t coeff_count = sk_data.coeff_count();
+    cout << "=== " << label << " ===" << endl;
 
-    cout << "\n[SecretKey] " << coeff_count << " coefficients" << endl;
-    cout << "First 30: ";
-    for (size_t i = 0; i < 30 && i < coeff_count; i++)
+    // Print vector 'a'
+    cout << "Vector a (size " << ct.a.GetLength() << "): ";
+    for (int i = 0; i < min(15, (int)ct.a.GetLength()); i++)
     {
-        cout << sk_data[i] << " ";
+        cout << ct.a[i] << " ";
     }
-    cout << "\nLast 10: ";
-    for (size_t i = coeff_count - 10; i < coeff_count; i++)
+    if (ct.a.GetLength() > 15)
+        cout << "... (+" << (ct.a.GetLength() - 15) << " more)";
+    cout << endl;
+
+    // Print vector 'b'
+    cout << "Vector b (size " << ct.b.GetLength() << "): ";
+    for (int i = 0; i < min(15, (int)ct.b.GetLength()); i++)
     {
-        cout << sk_data[i] << " ";
+        cout << ct.b[i] << " ";
+    }
+    if (ct.b.GetLength() > 15)
+        cout << "... (+" << (ct.b.GetLength() - 15) << " more)";
+    cout << endl;
+    cout << endl;
+}
+
+void PrintDigest(const seal::Ciphertext& ct, std::size_t max_per_poly = 16)
+{
+    // N = poly_modulus_degree, K = # of primes in coeff_modulus
+    const std::size_t N = ct.poly_modulus_degree();
+    const std::size_t polys = ct.size();
+
+    for (std::size_t p = 0; p < polys; ++p) {
+        const auto* ptr = ct.data(p);          // start of this poly's data
+        const std::size_t count = std::min(N, max_per_poly);
+
+        std::cout << "poly " << p << ": [";
+        for (std::size_t i = 0; i < count; ++i) {
+            std::cout << ptr[i];
+            if (i + 1 != count) std::cout << ", ";
+        }
+        if (count < N) std::cout << ", ...";
+        std::cout << "]\n";
+    }
+}
+
+void PrintBinary(const std::vector<uint8_t> &binary_clue)
+{
+    std::cout << "Binary[" << binary_clue.size() << "]: ";
+    for (size_t i = 0; i < std::min(size_t(32), binary_clue.size()); i++)
+    {
+        std::cout << std::hex << std::setw(2) << std::setfill('0')
+                  << static_cast<int>(binary_clue[i]);
+    }
+    if (binary_clue.size() > 32)
+    {
+        std::cout << "...";
+    }
+    std::cout << std::dec << std::endl;
+}
+
+void PrintDigest(const vector<uint64_t> &values, int x = 2000)
+{
+    cout << "First " << x << " values: ";
+    for (int i = 0; i < x && i < values.size(); i++)
+    {
+        cout << values[i] << " ";
     }
     cout << endl;
 }
 
-size_t get_memory_usage_mb()
+void print_nonzero_indices(const std::vector<uint64_t> &values)
 {
-    std::ifstream file("/proc/self/status");
-    std::string line;
-    while (std::getline(file, line))
+    std::cout << "Indices with non-zero values: ";
+    for (std::size_t i = 0; i < values.size(); i++)
     {
-        if (line.substr(0, 6) == "VmRSS:")
+        if (values[i] != 0)
         {
-            std::istringstream iss(line);
-            std::string label, value, unit;
-            iss >> label >> value >> unit;
-            return std::stoul(value) / 1024;
+            std::cout << i << " ";
         }
     }
-    return 0;
+    std::cout << std::endl;
 }
+

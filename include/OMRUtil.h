@@ -1021,17 +1021,16 @@ vector<vector<long>> receiverDecodingOMR3_omrtake3(vector<Ciphertext>& lhsCounte
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-Ciphertext obtainPackedSIC_dos(SecretKey& sk, vector<srPKECiphertext>& SICPVW, vector<vector<Ciphertext>>& switchingKey, const RelinKeys& relin_keys,
+Ciphertext obtainPackedSIC_dos(vector<srPKECiphertext>& SICPVW, vector<vector<Ciphertext>>& switchingKey, const RelinKeys& relin_keys,
                                const GaloisKeys& gal_keys, const size_t& degree, const SEALContext& context, const srPKEParam& params,
 			       const int numOfTransactions) {
 
     Evaluator evaluator(context);
-    Decryptor decryptor(context, sk);
     
     vector<Ciphertext> packedSIC(params.ell);
     chrono::high_resolution_clock::time_point s,e;
     s = chrono::high_resolution_clock::now();
-    computeBplusAS_dos(sk, packedSIC, SICPVW, switchingKey, gal_keys, context, params);
+    computeBplusAS_dos(packedSIC, SICPVW, switchingKey, gal_keys, context, params);
     e = chrono::high_resolution_clock::now();
     /* cout << "   computeBplusAS_dos time: " << chrono::duration_cast<chrono::microseconds>(e - s).count() << endl; */
 
@@ -1041,7 +1040,7 @@ Ciphertext obtainPackedSIC_dos(SecretKey& sk, vector<srPKECiphertext>& SICPVW, v
     /* cout << "** Noise after b-aSK: " << decryptor.invariant_noise_budget(packedSIC[0]) << endl; */
 
     // int rangeToCheck = 20; // range check is from [-rangeToCheck, rangeToCheck-1]
-    return rangeCheck_dos(sk, packedSIC, relin_keys, degree, context, params);
+    return rangeCheck_dos(packedSIC, relin_keys, degree, context, params);
 }
 
 
