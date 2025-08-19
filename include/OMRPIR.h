@@ -199,8 +199,14 @@ void OMR_pir() {
 
     // cout << decoded_res << endl;
 
-    string command = "../pir/vectorized_batchpir/build/bin/vectorized_batch_pir "+to_string(pir_pertinent_glb)+" "+to_string(pir_db_size_glb)+" "+to_string(pir_db_entry_size_glb);
-
+    string command = "";
+    if (is_pirana) {
+        // command = "../pir/pirana/build/bin/pirexamples -b 1 -l 256 -n 16384 -x 256 -c 0 ";
+        command = "../pir/pirana/bin/pirexamples -b 1 -l " + to_string(pir_pertinent_glb) + " -n "
+                     + to_string(pir_db_size_glb) + " -x " + to_string(pir_db_entry_size_glb) + " -c " + to_string(is_pirana_comp);
+    } else {
+        command = "../pir/vectorized_batchpir/build/bin/vectorized_batch_pir "+to_string(pir_pertinent_glb)+" "+to_string(pir_db_size_glb)+" "+to_string(pir_db_entry_size_glb);
+    }
     int ret = std::system(command.c_str());
 
     if (ret != 0) {

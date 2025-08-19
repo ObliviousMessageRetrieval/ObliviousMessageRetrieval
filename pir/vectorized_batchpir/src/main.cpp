@@ -167,7 +167,7 @@ int batchpir_main(int argc, char* argv[])
 
  for (size_t iteration = 0; iteration < input_choices.size(); ++iteration)
 {
-    std::cout << "\n\nBegin PIR server....\n";
+    std::cout << "\n\nBegin PIR server - vectorized_bactchpir ....\n";
 
     const auto& choice = input_choices[iteration];
 

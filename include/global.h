@@ -8,6 +8,9 @@ int OMRtwoM = 100;
 
 bool default_param_set = true;
 
+bool is_pirana = true;
+bool is_pirana_comp = true;
+
 // under default ring_dim = 53, payload_size = 306, each 2 byte, by concating two payloads together
 // we can tolerate ~53 bucket in one BFV ciphertext, and this can fit kbar = 50 pert msgs
 // for x*53 buckets, we need x BFV ciphertexts

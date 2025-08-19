@@ -22,9 +22,11 @@ int main(int argc, char* argv[]) {
     cout << "| Benchmark Test                     |" << endl;
     cout << "+------------------------------------+" << endl;
 
-    pir_pertinent_glb = std::stoi(argv[1]);
-    pir_db_size_glb = std::stoi(argv[2]);
-    pir_db_entry_size_glb = std::stoi(argv[3]);
+    is_pirana = std::stoi(argv[1]);
+    pir_pertinent_glb = std::stoi(argv[2]);
+    pir_db_size_glb = std::stoi(argv[3]);
+    pir_db_entry_size_glb = std::stoi(argv[4]);
+    is_pirana_comp = std::stoi(argv[5]);
 
     OMR_pir();
 

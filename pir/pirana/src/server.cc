@@ -57,10 +57,10 @@ void Server::gen_random_db() {
   // database read for encryption
   // each uint32_t save a plaintext < plain_modulus;
   std::cout << "Generate random database for test!" << std::endl;
-  std::cout << "Raw database: " << num_payloads << " , (" << num_payload_slot
-            << " * " << plain_modulus_bit - 1 << ") -> "
-            << num_payload_slot * (plain_modulus_bit - 1) / 8 << " Bytes"
-            << std::endl;
+  // std::cout << "Raw database: " << num_payloads << " , (" << num_payload_slot
+  //           << " * " << plain_modulus_bit - 1 << ") -> "
+  //           << num_payload_slot * (plain_modulus_bit - 1) / 8 << " Bytes"
+  //           << std::endl;
   _raw_db.resize(num_payloads);
   uint64_t pi = 0;
   for (auto &payload : _raw_db) {
@@ -84,7 +84,7 @@ void Server::gen_random_db() {
 // used for PIR single query
 void Server::encode_to_ntt_db() {
   assert(_set_db && "Database has not been loaded correctly!");
-  std::cout << "Encoding database!" << std::endl;
+  // std::cout << "Encoding database!" << std::endl;
 
   auto N = _pir_parms.get_seal_parms().poly_modulus_degree();
   auto n = _pir_parms.get_num_payloads();
