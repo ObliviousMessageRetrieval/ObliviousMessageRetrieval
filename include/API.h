@@ -105,7 +105,6 @@ Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
     auto numcores = 1;
     auto poly_modulus_degree = 32768;
     auto params = srPKEParam();
-    int t = 65537;
     int party_size_local = 1;
 
     const auto& context = ddctx::ctx();
@@ -163,7 +162,7 @@ Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
             counter[i] = numOfTransactions / numcores * i;
 
             size_t j = 0;
-            while (j < numOfTransactions / numcores / poly_modulus_degree)
+            while (j < static_cast<size_t>(numOfTransactions / numcores / poly_modulus_degree))
             {
                 Ciphertext packedSIC_temp;
 
@@ -411,7 +410,7 @@ void PrintBinary(const std::vector<uint8_t> &binary_clue)
 void PrintDigest(const vector<uint64_t> &values, int x = 2000)
 {
     cout << "First " << x << " values: ";
-    for (int i = 0; i < x && i < values.size(); i++)
+    for (int i = 0; i < x && i < static_cast<int>(values.size()); i++)
     {
         cout << values[i] << " ";
     }
