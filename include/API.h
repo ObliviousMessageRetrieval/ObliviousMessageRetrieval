@@ -9,6 +9,8 @@
 #include <memory>
 #include <cassert>
 
+#include <chrono>
+
 // --- Global, single source of truth for SEAL context ---
 namespace ddctx {
     inline bool ready = false;
@@ -44,7 +46,7 @@ std::tuple<SecretKey, srPKEpk, vector<Ciphertext>> init_deaddrop()
     auto pk_clue = srPKEGeneratePublicKey(params, sk);
 
     // Create clueDB
-    int numOfTransactions = 32768;
+    int numOfTransactions = 131072;
     int num_of_pertinent_msgs = 0;
     int party_size_local = 1;
     vector<int> pertinentMsgIndices;
@@ -53,8 +55,7 @@ std::tuple<SecretKey, srPKEpk, vector<Ciphertext>> init_deaddrop()
     cout << "Pertient message indices: " << pertinentMsgIndices << endl;
 
     // Configurating SEAL encryption for second PKE pair for FHE (sk_decode)
-    size_t poly_modulus_degree_glb = 32768;
-    size_t poly_modulus_degree = poly_modulus_degree_glb;
+    size_t poly_modulus_degree = 32768;
     int t = 65537;
 
     EncryptionParameters parms(scheme_type::bfv);
@@ -63,6 +64,7 @@ std::tuple<SecretKey, srPKEpk, vector<Ciphertext>> init_deaddrop()
                                                                     60, 60, 60, 60,
                                                                     60, 60, 60, 60,
                                                                     60, 60, 30, 60});
+    // parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
     parms.set_coeff_modulus(coeff_modulus);
     parms.set_plain_modulus(t);
     prng_seed_type seed;
@@ -101,11 +103,10 @@ srPKECiphertext gen_clue(const srPKEpk &pk_clue)
 // Generates encrypted digest over the whole DB
 Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
 {
-    auto numOfTransactions = 32768;
-    auto numcores = 1;
-    auto poly_modulus_degree = 32768;
+    auto numOfTransactions = 131072;
+    auto numcores = 4;
+    auto poly_modulus_degree = ddctx::parms().poly_modulus_degree();
     auto params = srPKEParam();
-    int party_size_local = 1;
 
     const auto& context = ddctx::ctx();
     Evaluator evaluator(context);
@@ -124,11 +125,10 @@ Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
     // Retrieve digest
     vector<vector<Ciphertext>> packedSICfromPhase1(numcores, vector<Ciphertext>(numOfTransactions / numcores / poly_modulus_degree));
 
-    NTL::SetNumThreads(numcores);
-    SecretKey secret_key_blank;
+    // NTL::SetNumThreads(numcores);
 
     int tempn;
-    for (tempn = 1; tempn < params.n1; tempn *= 2)
+    for (tempn = 1; tempn < params.n1; tempn *= 2) // params.n1 = 936
     {
     }
 
@@ -141,21 +141,56 @@ Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
 
         rotated_switchingKey.resize(params.ell);
 
-        for (int l = 0; l < params.ell; l++)
+        auto start = std::chrono::high_resolution_clock::now();
+        start = std::chrono::high_resolution_clock::now();
+
+        NTL::SetNumThreads(params.ell);
+        NTL_EXEC_RANGE(params.ell, l_first, l_last);
+        for (int l = l_first; l < l_last; ++l)
         {
+            // Thread-local memory pool & Evaluator for safety
+            MemoryPoolHandle pool = MemoryPoolHandle::New();
+            auto old_prof = MemoryManager::SwitchProfile(std::make_unique<MMProfFixed>(std::move(pool)));
+            Evaluator eval_local(context);
+
             rotated_switchingKey[l].resize(tempn);
             rotated_switchingKey[l][0] = pk_detect[l];
 
-            for (int i = 1; i < tempn; i++)
-            {
-                evaluator.rotate_rows(rotated_switchingKey[l][i - 1], 1, gal_keys, rotated_switchingKey[l][i]);
+            for (int i = 1; i < tempn; ++i) {
+                eval_local.rotate_rows(rotated_switchingKey[l][i - 1], 1, gal_keys,
+                                    rotated_switchingKey[l][i]);
             }
-            for (int i = 0; i < tempn; i++)
-            {
-                evaluator.transform_to_ntt_inplace(rotated_switchingKey[l][i]);
+            for (int i = 0; i < tempn; ++i) {
+                eval_local.transform_to_ntt_inplace(rotated_switchingKey[l][i]);
             }
-        }
 
+            MemoryManager::SwitchProfile(std::move(old_prof));
+        }
+        NTL_EXEC_RANGE_END;
+
+        std::cout << "rotating switching key precomputation: " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count()
+        << " s\n";
+
+        // Measure total memory size of rotated_switchingKey in GB
+        {
+            size_t total_bytes = 0;
+            for (int l = 0; l < params.ell; l++)
+            {
+                for (int i = 0; i < tempn; i++)
+                {
+                    std::stringstream ss;
+                    rotated_switchingKey[l][i].save(ss);
+                    total_bytes += ss.str().size();
+                }
+            }
+            double total_gb = static_cast<double>(total_bytes) / (1024.0 * 1024.0 * 1024.0);
+            std::cout << "rotated_switchingKey total size ≈ " << total_gb << " GB\n";
+        }
+        // Delete after finishing using
+
+        start = std::chrono::high_resolution_clock::now();
+
+        NTL::SetNumThreads(numcores); 
         NTL_EXEC_RANGE(numcores, first, last);
         for (int i = first; i < last; i++)
         {
@@ -166,29 +201,20 @@ Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
             {
                 Ciphertext packedSIC_temp;
 
-                for (int p = 0; p < party_size_local; p++)
-                {
-                    loadClues_dos(SICPVW_multicore[i], counter[i], counter[i] + poly_modulus_degree, params, p, party_size_local);
-
-                    packedSIC_temp = obtainPackedSIC_dos(SICPVW_multicore[i], rotated_switchingKey, relin_keys, gal_keys,
-                                                         poly_modulus_degree, context, params, poly_modulus_degree);
-
-                    if (p == 0)
-                    {
-                        packedSICfromPhase1[i][j] = packedSIC_temp;
-                    }
-                    else
-                    {
-                        evaluator.add_inplace(packedSICfromPhase1[i][j], packedSIC_temp);
-                    }
-                }
+                loadClues_dos(SICPVW_multicore[i], counter[i], counter[i] + poly_modulus_degree, params);
+                packedSIC_temp = obtainPackedSIC_dos(SICPVW_multicore[i], rotated_switchingKey, relin_keys, gal_keys,
+                                                        poly_modulus_degree, context, params, poly_modulus_degree);
+                packedSICfromPhase1[i][j] = packedSIC_temp;
+                
                 j++;
                 counter[i] += poly_modulus_degree;
                 SICPVW_multicore[i].clear();
             }
         }
-
         NTL_EXEC_RANGE_END;
+
+        std::cout << "generating encrypted indices: " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count()
+        << " s\n";
 
         for (int l = 0; l < params.ell; l++)
         {
@@ -200,6 +226,9 @@ Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
 
         MemoryManager::SwitchProfile(std::move(old_prof));
     }
+
+    auto start = std::chrono::high_resolution_clock::now();
+    start = std::chrono::high_resolution_clock::now();
 
     // Compression to get a single ciphertext as output
     int determinCounter = 0;
@@ -223,6 +252,8 @@ Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
             determinCounter++;
         }
     }
+    std::cout << "compression: " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count()
+    << " s\n";
 
     return res;
 }
@@ -273,7 +304,6 @@ void PrintSecretKeyDecode(const seal::SecretKey& sk, size_t max_to_print = 16)
         std::cout << ", ...";
     std::cout << "]\n";
 }
-
 void PrintPublicKeyClue(const srPKEpk &pk)
 {
     cout << "=== PUBLIC KEY ===" << endl;
@@ -303,7 +333,6 @@ void PrintPublicKeyClue(const srPKEpk &pk)
         cout << "... (" << (pk.size() - 3) << " more ciphertexts)" << endl;
     cout << endl;
 }
-
 void PrintPublicKeyDetect(const vector<Ciphertext> &switchingKey)
 {
     cout << "\n=== Switching Key Information ===" << endl;
@@ -345,7 +374,6 @@ void PrintPublicKeyDetect(const vector<Ciphertext> &switchingKey)
     cout << "================================\n"
          << endl;
 }
-
 void PrintClue(const srPKECiphertext &ct, const string &label = "CLUE")
 {
     cout << "=== " << label << " ===" << endl;
@@ -371,7 +399,6 @@ void PrintClue(const srPKECiphertext &ct, const string &label = "CLUE")
     cout << endl;
     cout << endl;
 }
-
 void PrintDigest(const seal::Ciphertext& ct, std::size_t max_per_poly = 16)
 {
     // N = poly_modulus_degree, K = # of primes in coeff_modulus
@@ -391,7 +418,6 @@ void PrintDigest(const seal::Ciphertext& ct, std::size_t max_per_poly = 16)
         std::cout << "]\n";
     }
 }
-
 void PrintBinary(const std::vector<uint8_t> &binary_clue)
 {
     std::cout << "Binary[" << binary_clue.size() << "]: ";
@@ -406,7 +432,6 @@ void PrintBinary(const std::vector<uint8_t> &binary_clue)
     }
     std::cout << std::dec << std::endl;
 }
-
 void PrintDigest(const vector<uint64_t> &values, int x = 2000)
 {
     cout << "First " << x << " values: ";
@@ -416,7 +441,6 @@ void PrintDigest(const vector<uint64_t> &values, int x = 2000)
     }
     cout << endl;
 }
-
 void print_nonzero_indices(const std::vector<uint64_t> &values)
 {
     std::cout << "Indices with non-zero values: ";

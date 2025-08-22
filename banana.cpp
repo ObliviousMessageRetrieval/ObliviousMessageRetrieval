@@ -9,24 +9,56 @@
 #include "include/API.h"
 #include "include/serialize.h"
 
+#include <chrono>
+#include <iostream>
+
 using namespace seal;
 
 int main(int argc, char *argv[])
 {
+    auto start = std::chrono::high_resolution_clock::now();
+
+    start = std::chrono::high_resolution_clock::now();
     auto [sk_decode, pk_clue, pk_detect] = init_deaddrop();
-    cout << "All keys generated, clueDB created" << endl;
-    // auto clue = gen_clue(pk_clue);
+    std::cout << "init_deaddrop: " 
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::high_resolution_clock::now() - start).count()
+              << " ms\n";
 
-    auto pkd = SerializePublicKeyDetect(pk_detect);
-    auto pks = DeserializePublicKeyDetect(pkd);
+    start = std::chrono::high_resolution_clock::now();
+    auto clue = gen_clue(pk_clue);
+    std::cout << "gen_clue: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::high_resolution_clock::now() - start).count()
+              << " ms\n";
 
-    auto digest = gen_encrypted_digest(pks); // main line
+    start = std::chrono::high_resolution_clock::now();
+    submit_clue(clue, 50000);
+    std::cout << "submit_clue: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::high_resolution_clock::now() - start).count()
+              << " ms\n";
 
-    auto d = SerializeDigest(digest);
-    auto dd = DeserializeDigest(d);
-    auto skd = SerializeSecretKeyDecode(sk_decode);
-    auto skdd = DeserializeSecretKeyDecode(skd);
+    start = std::chrono::high_resolution_clock::now();
+    auto digest = gen_encrypted_digest(pk_detect);
+    std::cout << "gen_encrypted_digest: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::high_resolution_clock::now() - start).count()
+              << " ms\n";
 
-    auto decoded_digest = decode_digest(dd, skdd); // main line
+    start = std::chrono::high_resolution_clock::now();
+    auto decoded_digest = decode_digest(digest, sk_decode);
+    std::cout << "decode_digest: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::high_resolution_clock::now() - start).count()
+              << " ms\n";
+
+    start = std::chrono::high_resolution_clock::now();
     print_nonzero_indices(decoded_digest);
-} 
+    std::cout << "print_nonzero_indices: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::high_resolution_clock::now() - start).count()
+              << " ms\n";
+
+    std::cout << "decoded_digest length: " << decoded_digest.size() << "\n";
+}
