@@ -104,8 +104,8 @@ uint64_t get_bucket_size(std::vector<std::vector<uint32_t>> &bucket) {
 void PirParms::get_all_index_hash_result(const uint64_t num_payloads,
                                          const uint64_t num_query,
                                          const double cuckoo_factor) {
-  // std::cout << "--------------------------------------" << std::endl;
-  // std::cout << "Preprocessing cuckoo hash!" << std::endl;
+  std::cout << "--------------------------------------" << std::endl;
+  std::cout << "Preprocessing cuckoo hash!" << std::endl;
 
   uint32_t N = _seal_parms.poly_modulus_degree();
   // If the number of query is large enough, the response utilization rate is
@@ -171,7 +171,7 @@ void PirParms::get_all_index_hash_result(const uint64_t num_payloads,
   for (uint64_t index = 0; index < _col_size; index++) {
     _cw_index[index] = get_cw_code_k2(index, _encoding_size);
   }
-  // std::cout << "Cuckoo hash done!" << std::endl;
+  std::cout << "Cuckoo hash done!" << std::endl;
 }
 
 // index -> cw is regular;
@@ -189,7 +189,7 @@ PirParms::PirParms(const uint64_t num_payloads, const uint64_t payload_size,
   assert(is_batch == true && num_query > 1);
 
   uint64_t poly_degree = 4096;
-  std::vector<int> coeff_modulus = {50, 30, 32, 24};
+  std::vector<int> coeff_modulus = {50, 32, 24};
 
   uint64_t plain_prime_len = is_compress? 18 : 17;
 
@@ -200,8 +200,8 @@ PirParms::PirParms(const uint64_t num_payloads, const uint64_t payload_size,
   get_all_index_hash_result(num_payloads, num_query);
 
   // _rotate_step = poly_degree / _pre_rotate;
-  // print_seal_parms();
-  // print_pir_parms();
+  print_seal_parms();
+  print_pir_parms();
 }
 
 void PirParms::print_pir_parms() {

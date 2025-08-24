@@ -211,6 +211,8 @@ void OMR_pir() {
     } else {
         command = "../pir/vectorized_batchpir/build/bin/vectorized_batch_pir "+to_string(pir_pertinent_glb)+" "+to_string(pir_db_size_glb)+" "+to_string(pir_db_entry_size_glb);
     }
+
+    cout << "Execute PIR: " << command << endl;
     int ret = std::system(command.c_str());
 
     if (ret != 0) {

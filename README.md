@@ -1,4 +1,4 @@
-# DoS-resistant Oblivious Message Retrieval from Snake-eye Resistant PKE
+# LinOMR
 
 
 ### Overview:
@@ -7,34 +7,14 @@ Oblivious message retrieval (OMR) allows messages resource-limited recipients to
 Its realizations in recent works leave an open problem:
 can an OMR scheme be both practical and provably secure against spamming attacks from malicious senders (i.e., DoS-resistant) under standard assumptions?
     
-We present PerfOMR: a provably DoS-resistant OMR construction that is 12x faster than OMRp2 (a conjectured DoS-resistant OMR construction in prior works), and (almost) matches the performance of the state-of-the-art OMR scheme that is _not_ DoS-resistant (proven by the attacks we show).
-
-As a building block, we analyze the _snake-eye resistance_ property for general PKE schemes.
-We construct a new lattice-based PKE scheme, LWEmongrass that is provably snake-eye resistant and has better efficiency than the PVW scheme underlying OMRp2.
-Note that the major change we made in this implementation compared to prior work (i.e., PerfOMR, see below) is the clue key and clue generation; all other building blocks for the main functionality of OMR are mainly the same and thus we only made small changes to accmondate our parameter changes.
-We also show that the natural candidates (e.g., RingLWE PKE) are not snake-eye resistant.
-
-This library serves as the implementation for the DoS OMR scheme in the [paper](https://eprint.iacr.org/2024/510).
 
 
 ## What's in the demo
 
 
-
-### DoS-PerfOMR: DoS-resistance OMR
-- Obliviously identify the pertinent messages and pack all their contents into a into a single digest.
-- Schemes benchmarked (in DoS PerfOMR): 
-    - main scheme DoS-PerfOMR (Section 8.3)
-- Parameters: N = 2^19 (or *N* = 500,000 padded to 2^19), $m = \bar{m}$ = 50. Benchmark results on a Google Compute Cloud n4-standard-8 instance type with 32GB RAM are reported in Section 9 in our paper
-- Measurement (with parameters in Section 9):
-<img align="center" src="figures/dos_runtime.png" width="950" height="112">
-<img align="center" src="figures/dos_scale.png" width="930" height="380">
-
-- Source code is in the header files in the include folder.
-
 ## Dependencies
 
-The DoS-PerfOMR library relies on the following:
+The LinOMR library relies on the following:
 
 - C++ build environment
 - CMake build infrastructure
@@ -59,12 +39,12 @@ sudo apt-get install libgmp3-dev
 sudo apt-get install libntl-dev # specify version to be 11.4.3-1build1 if not found
 sudo apt-get install unzip
 
-# If you have the DOS_code.zip directly, put it under ~/OMR and unzip it into ObliviousMessageRetrieval dir, otherwise:
-git clone --branch ec25 --single-branch https://github.com/ObliviousMessageRetrieval/ObliviousMessageRetrieval.git
+# With the linomr_code.zip, put it under ~/OMR and unzip it into ObliviousMessageRetrieval dir
 
  # change build_path to where you want the dependency libraries installed
 OMRDIR=~/OMR  
 BUILDDIR=$OMRDIR/ObliviousMessageRetrieval/build
+BUILDDIR_PIR=$OMRDIR/ObliviousMessageRetrieval/pir/vectorized_batchpir/build
 
 cd $OMRDIR && git clone -b v1.11.3 https://gitlab.com/palisade/palisade-release
 cd palisade-release
@@ -88,6 +68,10 @@ cd SEAL
 cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$BUILDDIR -DSEAL_USE_INTEL_HEXL=ON 
 cmake --build build
 cmake --install build
+# notice that the pir sublib also depends on SEAL, so we also build for it
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$BUILDDIR_PIR -DSEAL_USE_INTEL_HEXL=ON 
+cmake --build build
+cmake --install build
 
 # Optional
 # Notice that although we 'enable' hexl via command line, it does not take much real effect on GCP instances
@@ -98,89 +82,27 @@ cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$BUILDDIR
 cmake --build build
 cmake --install build
 
-cd $OMRDIR/ObliviousMessageRetrieval/build
+cd $BUILDDIR
 mkdir ../data
 mkdir ../data/payloads
 mkdir ../data/clues
 cmake .. -DCMAKE_PREFIX_PATH=$BUILDDIR
 make
+
+cd $BUILDDIR_PIR
+cmake -S . -B build
+cmake --build build
 ```
 
 ### To Run
 
 ```
 cd $BUILDDIR
-# to run our main DoS-PerfOMR construction: for example: ./OMRdemos dos 1 2 32768 50
-./OMRdemos dos <number_of_cores> <number_of_messages_in_bundle> <number_of_bundles> <number_of_pert_msgs>
-
-
-# to reproduce the main benchmark result in Table 1 shown above:
-./OMRdemos dos 1 8 65536 50
-./OMRdemos dos 2 8 65536 50
-
-# to reproduce the main benchmark result in Table 2 shown above:
-./OMRdemos dos 1 8 65536 50
-./OMRdemos dos 1 8 65536 100
-./OMRdemos dos 1 8 65536 150
-./OMRdemos dos 1 8 65536 50
-./OMRdemos dos 1 8 262144 50
-./OMRdemos dos 1 8 1048576 50
-
-# to reproduce the attack described in section 6.1 in our submission:
-# notice that this is automatically run for three times to make sure that the attack works
-# in our submission, we report that the attack succeeded in all ten trials
-# this can be easily tested by re-run this command multiple times
-./OMRdemos dos-attack
+./OMRdemos 0 50 65536 612 1
 ```
 
 ### Sample Output for Normal Benchmark
-Running the command ```./OMRdemos dos 1 2 32768 50``` would get the following sample output:
-```
-Preparing database and paramaters...
-Pertient message indices: [ 3558 3683 3881 4099 4857 5142 5241 7165 7774 7806 8085 8375 8381 8597 8608 8769 9119 9960 10478 10689 10928 12291 12937 13238 15021 16730 16929 19011 19745 20384 21812 22398 22565 23523 23913 24844 24929 25352 25687 26401 27076 27309 27372 28726 30793 31006 31344 31838 32077 32215 ]
-/
-| Encryption parameters :
-|   scheme: BFV
-|   poly_modulus_degree: 32768
-|   coeff_modulus size: 905 (35 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 30 + 60) bits
-|   plain_modulus: 65537
-\
-Database and parameters prepared.
-
-Preprocess switching key time: 251541219 us.
-ClueToPackedPV time: 1669926636 us.
-PVUnpack time: 309490659 us.
-ExpandedPVToDigest time: 314739741 us.
-
-Detector running time: 2597531678 us.
-Digest size: 1419844 bytes
-
-Result is correct!
+Running the command ```./OMRdemos 0 50 65536 612 1``` would get the following sample output:
 ```
 
-### Sample Output for DoS Attack
-Running the command ```./OMRdemos dos-attack``` would get the following sample output:
-```
-Preparing database and paramaters...
-Pertient message indices: [ 886 2272 2776 4244 5973 6603 6885 8562 8898 9377 10141 10374 10790 11101 12852 12992 13043 13077 13549 14793 15298 15729 16491 17013 17440 17524
- 19248 19846 20897 21296 23299 23315 24994 25479 25937 27166 27182 27680 28007 28128 28631 29243 29683 29992 30497 30706 30895 31867 32402 ]
-
-DoS attack on index zero.
-Pertient message indices with attack: [ 886 2272 2776 4244 5973 6603 6885 8562 8898 9377 10141 10374 10790 11101 12852 12992 13043 13077 13549 1479
-3 15298 15729 16491 17013 17440 17524 19248 19846 20897 21296 23299 23315 24994 25479 25937 27166 27182 27680 28007 28128 28631 29243 29683 29992 30497 30706 30895 31867 32
-402 ]
-/
-| Encryption parameters :
-|   scheme: BFV
-|   poly_modulus_degree: 32768
-|   coeff_modulus size: 917 (60 + 55 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 22 + 60) bits
-|   plain_modulus: 65537
-\
-Database and parameters prepared.
-
-Detected message indices on user side: 0  886  2272  2776  4244  5973  6603  6885  8562  8898  9377  10141  10374  10790  11101  12852  12992  13043  13077  13549  14793  1
-5298  15729  16491  17013  17440  17524  19248  19846  20897  21296  23299  23315  24994  25479  25937  27166  27182  27680  28007  28128  28631  29243  29683  29992  30497
-  30706  30895  31867  32402
-
-Result is correct!
 ```

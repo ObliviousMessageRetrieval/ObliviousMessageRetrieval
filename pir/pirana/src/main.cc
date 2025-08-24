@@ -38,8 +38,7 @@ void single_pir_main(const uint64_t num_payloads, const uint64_t payload_size) {
   std::vector<std::vector<uint64_t>> answer = client.extract_answer(response);
   auto extract_time = timer.elapsed();
 
-  // std::cout << "------------------------------------" << std::endl;
-  std::cout << std::endl;
+  std::cout << "------------------------------------" << std::endl;
   std::cout << "Performance: " << std::endl;
   std::cout << "Gen query time: " << query_time << " ms " << std::endl;
   std::cout << "Gen response time: " << response_time << " ms " << std::endl;
@@ -55,13 +54,13 @@ void single_pir_main(const uint64_t num_payloads, const uint64_t payload_size) {
 void batch_pir_main(const uint64_t num_payloads, const uint64_t payload_size,
                     const uint64_t num_query, const bool is_batch,
                     const bool is_compress) {
-  std::cout << "Begin PIR server - Pirana .... " << std::endl;
+  std::cout << "Start batch PIR! " << std::endl;
   PirParms pir_parms(num_payloads, payload_size, num_query, is_batch,
                      is_compress);
   Client batch_client(pir_parms);
   std::stringstream keys = batch_client.save_keys();
 
-  std::cout << "Public key size: " << keys.str().size() << std::endl;
+  std::cout << " >>>>>>>>>>>>>>>>>>>>>>>> " << keys.str().size() << " <<<<<<<<<<<<<<<<<<<<<<<<<<\n";
   Server batch_server(pir_parms, is_batch, true);
 
   batch_server.set_keys(keys);
@@ -156,6 +155,8 @@ int main(int argc, char *argv[]) {
         return 0;
     }
   }
+
+  std::cout << num_payloads << ", " <<  payload_size << ", " << num_query << std::endl;
   if (is_batch == true) {
     batch_pir_main(num_payloads, payload_size, num_query, is_batch,
                    is_compress);
