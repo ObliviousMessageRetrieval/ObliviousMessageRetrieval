@@ -33,8 +33,8 @@ void OMR_pir() {
 
     // step 1. generate OPVW sk
     // recipient side
-    // auto params = OPVWParam(1024, bfv_Q, 0.5, 2, 80);
-    auto params = OPVWParam(900, bfv_Q, 0.6, 1, 80);
+    auto params = OPVWParam(1024, bfv_Q, 0.5, 2, 80);
+    // auto params = OPVWParam(900, bfv_Q, 0.6, 1, 80);
 
     auto sk = OPVWGenerateSecretKey(params);
     auto pk = OPVWGeneratePublicKey(params, sk);
@@ -59,8 +59,8 @@ void OMR_pir() {
     SEALContext context(parms, true, sec_level_type::none);
     /* cout << "primitive root: " << context.first_context_data()->plain_ntt_tables()->get_root() << endl; */
     print_parameters(context); 
-    // KeyGenerator keygen(context, 128);
-    KeyGenerator keygen(context, 400);
+    KeyGenerator keygen(context, 128);
+    // KeyGenerator keygen(context, 400);
     SecretKey secret_key = keygen.secret_key();
 
     PublicKey public_key;
@@ -148,7 +148,7 @@ void OMR_pir() {
 
     time_end = chrono::high_resolution_clock::now();
     time_diff = chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-    // cout << "\nDetector running time: " << time_diff.count() - sg << " us." << "\n";
+    cout << "\nDetector running time: " << time_diff.count() - sg << " us." << "\n";
 
     // Plaintext ppp;
     // for (int i = 0; i < params.ell; i++) {
@@ -170,32 +170,36 @@ void OMR_pir() {
     }
     cout << endl;
     for (int i = 0; i < (int) poly_modulus_degree_glb; i++) {
-        // sk_mod[i] = secret_key.data()[i] > 1 ? bfv_Q - 1 : secret_key.data()[i];
+        sk_mod[i] = secret_key.data()[i] > 1 ? bfv_Q - 1 : secret_key.data()[i];
         // sk_mod[i] = secret_key.data()[i] > 1 ? bfv_Q*16 - 1 : secret_key.data()[i];
-        sk_mod[i] = secret_key.data()[i] > 1 ? bfv_Q_prime - 1 : secret_key.data()[i];
+        // sk_mod[i] = secret_key.data()[i] > 1 ? bfv_Q_prime - 1 : secret_key.data()[i];
     }
     seal::util::RNSIter new_key_rns(secret_key.data().data(), poly_modulus_degree_glb);
     ntt_negacyclic_harvey(new_key_rns, coeff_modulus.size(), context.key_context_data()->small_ntt_tables());
 
 
     time_start = chrono::high_resolution_clock::now();
-    vector<vector<bfvCiphertext>> mod_res(params.ell);
+    vector<bfvCiphertext> mod_res(params.ell);
     for (int i = 0; i < params.ell; i++) {
-        // mod_res[i] = manual_mod_bfv_ciphertext(packedSICfromPhase1[0][i][0], numOfTransactions_glb, big_prime+1, bfv_Q);
+        mod_res[i] = manual_mod_bfv_ciphertext(packedSICfromPhase1[0][i][0], numOfTransactions_glb, big_prime+1, bfv_Q);
         // mod_res[i] = manual_mod_bfv_ciphertext(packedSICfromPhase1[0][i][0], numOfTransactions_glb, big_prime+1, bfv_Q*16);
-        mod_res[i] = manual_mod_bfv_ciphertext(packedSICfromPhase1[0][i][0], numOfTransactions_glb, big_prime+1, bfv_Q_prime);
+        // mod_res[i] = manual_mod_bfv_ciphertext(packedSICfromPhase1[0][i][0], numOfTransactions_glb, big_prime+1, bfv_Q_prime);
     }
 
     time_end = chrono::high_resolution_clock::now();
+    cout << "YOU SURE????????? " << chrono::duration_cast<chrono::microseconds>(time_end - time_start).count() << endl;
     time_diff += chrono::duration_cast<chrono::microseconds>(time_end - time_start);
     cout << "OMR Detector running time: " << time_diff.count() - sg << " us." << "\n";
+    
+    
     // vector<int> decoded_res = decode_pertinent_indices_omr_pir(mod_res, sk_mod, bfv_Q_prime);
+    vector<int> decoded_res = decode_pertinent_indices_omr_pir(mod_res, sk_mod, bfv_Q);
 
-    // cout << "Decoded pertinent msgs: ---------------\n";
-    // for (int i = 0; i < (int) decoded_res.size(); i++) {
-    //     if (decoded_res[i]) cout << i << ", ";
-    // }
-    // cout << endl;
+    cout << "Decoded pertinent msgs: ---------------\n";
+    for (int i = 0; i < (int) decoded_res.size(); i++) {
+        if (decoded_res[i]) cout << i << ", ";
+    }
+    cout << endl;
 
     // cout << decoded_res << endl;
 

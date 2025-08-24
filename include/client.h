@@ -485,21 +485,39 @@ vector<vector<long>> equationSolvingRandomBatch(vector<vector<int>>& lhs, vector
     return batched_res;
 }
 
-vector<int> decode_pertinent_indices_omr_pir(vector<vector<bfvCiphertext>>& res, vector<uint64_t>& sk, uint64_t p = bfv_Q,
-                                             uint64_t error_range = range_check_pir) {
-    vector<int> decoded_indices(res[0].size());
+uint64_t decode_single_omr_pir(bfvCiphertext res_ct, vector<uint64_t>& sk, int cnt, uint64_t p = bfv_Q) {
+    uint64_t res = 0;
 
-    for (int i = 0; i < (int) res[0].size(); i++) {
+    int ind = 0;
+    for (int i = cnt; i >= 0 && ind < (int) poly_modulus_degree_glb; i--) {
+        res += ((uint64_t) res_ct.a[i].ConvertToInt() * (uint64_t) sk[ind]) % (uint64_t) p;
+        res = res % p;
+        ind++;
+    }
+
+    for (int i = poly_modulus_degree_glb-1; i > cnt && ind < (int) poly_modulus_degree_glb; i--) {
+        long tmp = (long) - res_ct.a[i].ConvertToInt();
+        tmp = tmp < 0 ? p + tmp : tmp;
+        res += ((uint64_t) tmp * (uint64_t) sk[ind]) % (uint64_t) p;
+        res = res % p;
+        ind++;
+    }
+
+    res += res_ct.b[cnt].ConvertToInt();
+    res = res % p;
+
+    return res;
+}
+
+vector<int> decode_pertinent_indices_omr_pir(vector<bfvCiphertext>& res, vector<uint64_t>& sk, uint64_t p = bfv_Q,
+                                             uint64_t error_range = range_check_pir) {
+    vector<int> decoded_indices(poly_modulus_degree_glb);
+
+    for (int i = 0; i < (int) poly_modulus_degree_glb; i++) {
         bool is_not_pertinent = false; // default to pertinent
         for (int l = 0; l < (int) res.size(); l++) {
         // for (int l = 0; l < 1; l++) {
-            uint64_t tmp_res = 0;
-            for (int iter = 0; iter < (int) poly_modulus_degree_glb; iter++) {
-                tmp_res += ((uint64_t) res[l][i].a[iter].ConvertToInt() * (uint64_t) sk[iter]) % (uint64_t) p;
-                tmp_res = (tmp_res) % p;
-            }
-            tmp_res = tmp_res + res[l][i].b.ConvertToInt();
-            tmp_res = tmp_res % p;
+            uint64_t tmp_res = decode_single_omr_pir(res[l], sk, i, p);
             is_not_pertinent = is_not_pertinent || (tmp_res > range_check_pir && tmp_res < p - range_check_pir);
             // decoded_indices[i] = (int) tmp_res;
         }

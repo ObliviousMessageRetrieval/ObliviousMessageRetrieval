@@ -30,7 +30,7 @@ typedef NativeVector regevSK;
 
 struct bfvCiphertext {
     NativeVector a;
-    NativeInteger b;
+    NativeVector b;
 };
 
 struct regevCiphertext{
@@ -560,8 +560,8 @@ void PVWDec(vector<int>& msg, const PVWCiphertext& ct, const PVWsk& sk, const PV
 }
 
 
-
-vector<bfvCiphertext> manual_mod_bfv_ciphertext(Ciphertext& rlwe_ct, int ell, uint64_t big_prime, const int small_p) {
+/*
+vector<bfvCiphertext> manual_mod_bfv_ciphertext_dead(Ciphertext& rlwe_ct, int ell, uint64_t big_prime, const int small_p) {
     vector<bfvCiphertext> results(ell);
 
     prng_seed_type seed;
@@ -577,10 +577,7 @@ vector<bfvCiphertext> manual_mod_bfv_ciphertext(Ciphertext& rlwe_ct, int ell, ui
         int ind = 0;
         for (int i = cnt; i >= 0 && ind < (int) poly_modulus_degree_glb; i--) {
             float temp_f = ((float) rlwe_ct.data(1)[i]) * ((float) small_p) / ((long double) big_prime);
-            uint32_t decimal = (temp_f - ((int) temp_f)) * 100;
-            float rounding = dist(engine) < decimal ? 1 : 0;
-
-            long temp = ((int) (temp_f + rounding)) % small_p;
+            long temp = std::lround(temp_f);
             results[cnt].a[ind] = temp < 0 ? small_p + temp : temp;
 
             ind++;
@@ -588,10 +585,7 @@ vector<bfvCiphertext> manual_mod_bfv_ciphertext(Ciphertext& rlwe_ct, int ell, ui
 
         for (int i = poly_modulus_degree_glb-1; i > cnt && ind < (int) poly_modulus_degree_glb; i--) {
             float temp_f = ((float) rlwe_ct.data(1)[i]) * ((float) small_p) / ((long double) big_prime);
-            uint32_t decimal = (temp_f - ((int) temp_f)) * 100;
-            float rounding = dist(engine) < decimal ? 1 : 0;
-
-            long temp = ((int) (temp_f + rounding)) % small_p;
+            long temp = std::lround(temp_f);
             results[cnt].a[ind] = -temp < 0 ? small_p-temp : -temp;
 
             ind++;
@@ -599,11 +593,29 @@ vector<bfvCiphertext> manual_mod_bfv_ciphertext(Ciphertext& rlwe_ct, int ell, ui
 
         
         float temp_f = ((float) rlwe_ct.data(0)[cnt]) * ((float) small_p) / ((long double) big_prime);
-        uint32_t decimal = temp_f - ((int) temp_f) * 100;
-        float rounding = dist(engine) < decimal ? 1 : 0;
-
-        long temp = ((int) (temp_f + rounding)) % small_p;
+        long temp = std::lround(temp_f);
         results[cnt].b = temp % ((int) small_p);
+    }
+
+    return results;
+}
+*/
+
+
+
+bfvCiphertext manual_mod_bfv_ciphertext(Ciphertext& rlwe_ct, int ell, uint64_t big_prime, const int small_p) {
+    bfvCiphertext results;
+    results.a = NativeVector(poly_modulus_degree_glb);
+    results.b = NativeVector(poly_modulus_degree_glb);
+
+    for (int i = 0; i < (int) poly_modulus_degree_glb; i++) {
+        float temp_f = ((float) rlwe_ct.data(1)[i]) * ((float) small_p) / ((long double) big_prime);
+        long temp = std::lround(temp_f);
+        results.a[i] = temp < 0 ? small_p + temp : temp;
+
+        temp_f = ((float) rlwe_ct.data(0)[i]) * ((float) small_p) / ((long double) big_prime);
+        temp = std::lround(temp_f);
+        results.b[i] = temp < 0 ? small_p + temp : temp;
     }
 
     return results;
