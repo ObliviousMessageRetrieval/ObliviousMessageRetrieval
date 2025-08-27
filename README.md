@@ -1,42 +1,33 @@
-# AstronOMR
+# UnifOMR
 
 This README provides step by step instructions to reproduce our Table 2 and benchmark figures in the submission.
 
 ### Abstract:
 
-End-to-end encryption ensures message confidentiality but does not protect metadata, such as communication patterns among senders and recipients, or their identities. Oblivious Message Retrieval (OMR) is a cryptographic protocol that enables a server to help recipients retrieve their messages from a database without learning the link between messages and their recipients, thus protecting such metadata. 
+End-to-end encryption guarantees message confidentiality but does not hide metadata such as communication patterns among senders and recipients, or their identities.  
+Oblivious Message Retrieval (OMR) is a cryptographic protocol that enables servers to assist recipients in retrieving their messages from a database without learning the mapping between messages and recipients, thereby protecting such metadata.  
 
-This paper addresses two central questions: (1) What is the precise relationship between OMR and the better-studied Private Information Retrieval (PIR)?  
-(2) Can we design OMR schemes with concrete efficiency comparable to state-of-the-art PIR protocols? 
+This paper investigates two central questions of OMR: (1) What is the precise relationship between OMR and the better-studied primitive of Private Information Retrieval (PIR)?  
+(2) Can OMR schemes achieve concrete efficiency comparable to state-of-the-art PIR protocols?  
 
-We show that OMR with a property we call *strong detection-key-unlinkability* is at least as hard as PIR, and that existing OMR constructions already satisfy this property. This PIR-to-OMR reduction has low overhead, suggesting OMR cannot be made substantially more efficient than PIR.
+We show that OMR with a property we call *strong detection-key-unlinkability* is at least as hard as PIR, and that existing OMR constructions already satisfy this property. 
+This PIR-to-OMR reduction has low overhead, suggesting OMR cannot be made substantially more efficient than PIR.
 
-We then present AstronOMR, which achieves $20\times$ to $1080\times$ faster server runtime over the state-of-the-art SophOMR across realistic parameters. For $2^{19}$ messages of 612 bytes each, AstronOMR runs in only ${\sim}25$ seconds with 4 MB of communication, compared to $>1250$ seconds and 260KB for SophOMR.
+We then present UnifOMR, \CONF{with}\FULL{which achieves} $20\times$ to $1080\times$ faster server runtime over the state-of-the-art SophOMR across realistic parameters. For $2^{19}$ messages of 612 bytes each, UnifOMR runs in \FULL{only }${\sim}25$ seconds with 4 MB of communication, compared to $>1250$ seconds and 260KB for SophOMR.
 
-Crucially, AstronOMR uses batch PIR as a black-box component, which in our experiments accounts for 50--92\% of the server runtime. Thus, AstronOMR nearly matches the aforementioned lower bound concretely (for databases of $2^{16}$ to $2^{23}$ messages, each with $612$ to $3060$ bytes).
-
-- First, we establish a formal separation, showing that OMR (with a property called strong detection-key-unlinkability) is strictly stronger than PIR.
-    Furthermore, the PIR-to-OMR reduction has essentially no overhead,
-    which means that both asymptotically *and* concretely, one should expect PIR to be the performance lower bound of OMR.
-
-- Then, we present a new OMR construction, AstronOMR, which replaces the use of fully homomorphic encryption with a hybrid use of additively homomorphic encryption and batch PIR, which achieves over $20$-$315\times$ improvement in detector runtime over the state-of-the-art SophOMR (for different parameters tested).
-    For example, for $2^{19}$ messages (parameters tested in prior works),
-    AstronOMR takes only ${\sim} 25$ seconds of detector runtime and 4 megabytes of communication (compared to $> 1250$ seconds and $200$ kilobytes for SophOMR).
-    Furthermore, the batch PIR component in AstronOMR takes $50 $-$ 97\%$ of the detector runtime (depending on parameters),
-    which means that AstronOMR concretely almost matches to the lower bound.
-    Another side advantage of AstronOMR is that the detection key size is only $31$ MB compared to $142$ MB for SophOMR.
-
+Crucially, UnifOMR uses batch PIR as a black-box component, which in our experiments accounts for 50-92\% of the server runtime. Thus, UnifOMR nearly matches the aforementioned lower bound concretely (for databases of $2^{16}$ to $2^{23}$ messages, each with $612$ to $3060$ bytes).
 
 Thus, our results provide both a theoretical foundation for understanding OMR and a practical step toward making it deployable in real-world privacy-preserving systems.
+
 
 
     
 
 ## Dependencies
 
-Note: our scheme AstronOMR builds upon the [OMR library](https://github.com/ObliviousMessageRetrieval/) so this section is fully identical to the original library.
+Note: our scheme UnifOMR builds upon the [OMR library](https://github.com/ObliviousMessageRetrieval/) so this section is fully identical to the original library.
 
-The AstronOMR library relies on the following:
+The UnifOMR library relies on the following:
 
 - C++ build environment
 - CMake build infrastructure
@@ -62,7 +53,7 @@ sudo apt-get install libntl-dev # specify version to be 11.4.3-1build1 if not fo
 sudo apt install gitc
 sudo apt-get install unzip
 
-# With the AstronOMR_code.zip, put it under ~/OMR and unzip it into ObliviousMessageRetrieval dir
+# With the UnifOMR_code.zip, put it under ~/OMR and unzip it into ObliviousMessageRetrieval dir
 
  # change build_path to where you want the dependency libraries installed
 OMRDIR=~/OMR  
