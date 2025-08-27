@@ -119,6 +119,10 @@ void OMR_pir() {
     uint64_t total_runtime = 0;
     
     cout << "Execute OMR... " << endl;
+
+    vector<bfvCiphertext> mod_res(params.ell);
+    vector<uint64_t> sk_mod(poly_modulus_degree_glb);
+
     for (int iter_omr = 0; iter_omr < (int) (pir_db_size_glb / poly_modulus_degree_glb); iter_omr++) {
 
     sg = 0;
@@ -163,7 +167,6 @@ void OMR_pir() {
 
 
     // below is for confirming the above two primes
-    vector<uint64_t> sk_mod(poly_modulus_degree_glb);
     uint64_t big_prime = 0;
     inverse_ntt_negacyclic_harvey(secret_key.data().data(), context.key_context_data()->small_ntt_tables()[0]);
     int i = 0;
@@ -181,7 +184,6 @@ void OMR_pir() {
 
 
     time_start = chrono::high_resolution_clock::now();
-    vector<bfvCiphertext> mod_res(params.ell);
     for (int i = 0; i < params.ell; i++) {
         // mod_res[i] = manual_mod_bfv_ciphertext(packedSICfromPhase1[0][i][0], numOfTransactions_glb, big_prime+1, bfv_Q);
         mod_res[i] = manual_mod_bfv_ciphertext(packedSICfromPhase1[0][i][0], numOfTransactions_glb, big_prime+1, bfv_Q_prime);
@@ -195,7 +197,11 @@ void OMR_pir() {
     cout << "OMR Detector running time: " << total_runtime << " us." << "\n\n";
     
     
-    // vector<int> decoded_res = decode_pertinent_indices_omr_pir(mod_res, sk_mod, bfv_Q_prime);
+    // Note that this decode function below is implemented in a naive way
+    // (requiring D^2 time for ring dimension D), only to check correctness.
+    // Instead, we estimate the recipient runtime via SEAL decryption with ring dimension D,
+    // which uses the optimized DlogD NTT-based algorithm.
+    vector<int> decoded_res = decode_pertinent_indices_omr_pir(mod_res, sk_mod, bfv_Q_prime);
     // // vector<int> decoded_res = decode_pertinent_indices_omr_pir(mod_res, sk_mod, bfv_Q);
 
     // cout << "Decoded pertinent msgs: ---------------\n";
