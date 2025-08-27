@@ -35,8 +35,8 @@ PirParms::PirParms(const uint64_t num_payloads, const uint64_t payload_size)
   assert(poly_degree % _pre_rotate == 0 && "Wrong parameters selection!");
 
   _rotate_step = poly_degree / _pre_rotate;
-  print_seal_parms();
-  print_pir_parms();
+  // print_seal_parms();
+  // print_pir_parms();
 };
 
 void PirParms::set_seal_parms(uint64_t poly_degree,
@@ -104,8 +104,8 @@ uint64_t get_bucket_size(std::vector<std::vector<uint32_t>> &bucket) {
 void PirParms::get_all_index_hash_result(const uint64_t num_payloads,
                                          const uint64_t num_query,
                                          const double cuckoo_factor) {
-  std::cout << "--------------------------------------" << std::endl;
-  std::cout << "Preprocessing cuckoo hash!" << std::endl;
+  // std::cout << "--------------------------------------" << std::endl;
+  // std::cout << "Preprocessing cuckoo hash!" << std::endl;
 
   uint32_t N = _seal_parms.poly_modulus_degree();
   // If the number of query is large enough, the response utilization rate is
@@ -145,7 +145,7 @@ void PirParms::get_all_index_hash_result(const uint64_t num_payloads,
   uint64_t max_probe = 100;
   kuku::item_type empty_item = kuku::make_item(0xFFFF, 0);
 
-  std::cout << "Table size (B = 1.5L): " << _table_size << std::endl;
+  // std::cout << "Table size (B = 1.5L): " << _table_size << std::endl;
   _table = std::make_shared<kuku::KukuTable>(
       _table_size, stash_size, hash_count, hash_seed, max_probe, empty_item);
 
@@ -171,7 +171,7 @@ void PirParms::get_all_index_hash_result(const uint64_t num_payloads,
   for (uint64_t index = 0; index < _col_size; index++) {
     _cw_index[index] = get_cw_code_k2(index, _encoding_size);
   }
-  std::cout << "Cuckoo hash done!" << std::endl;
+  // std::cout << "Cuckoo hash done!" << std::endl;
 }
 
 // index -> cw is regular;
@@ -200,8 +200,8 @@ PirParms::PirParms(const uint64_t num_payloads, const uint64_t payload_size,
   get_all_index_hash_result(num_payloads, num_query);
 
   // _rotate_step = poly_degree / _pre_rotate;
-  print_seal_parms();
-  print_pir_parms();
+  // print_seal_parms();
+  // print_pir_parms();
 }
 
 void PirParms::print_pir_parms() {

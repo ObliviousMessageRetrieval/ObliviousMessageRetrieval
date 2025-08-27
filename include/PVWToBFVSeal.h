@@ -905,7 +905,7 @@ void computeBplusAS_omr_pir(vector<Ciphertext>& output, const vector<OPVWCiphert
 
 		}
 	}
-	cout << "After a*sk... \n";
+	// cout << "After a*sk... \n";
 
 	for (int i = 0; i < param.ell; i++) { // aggregate to a*sk and transfrom back from ntt
 		for (int j = 1; j < param.n; j++) {
@@ -915,7 +915,7 @@ void computeBplusAS_omr_pir(vector<Ciphertext>& output, const vector<OPVWCiphert
 		}
 		evaluator.transform_from_ntt_inplace(tmp[i][0]);
 	}
-	cout << "After aggregating and transform ntt... \n";
+	// cout << "After aggregating and transform ntt... \n";
 
 	for(int l = 0; l < param.ell; l++){
 		Plaintext plainInd;
@@ -935,7 +935,7 @@ void computeBplusAS_omr_pir(vector<Ciphertext>& output, const vector<OPVWCiphert
 
 		// if (l == 1) cout << "Add plain: " << chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
 	}
-	cout << "After subtracting from b... \n";
+	// cout << "After subtracting from b... \n";
 
 	MemoryManager::SwitchProfile(std::move(old_prof));
 }
