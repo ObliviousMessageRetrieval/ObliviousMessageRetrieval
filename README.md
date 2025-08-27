@@ -117,7 +117,7 @@ cmake -S . -B build -DCMAKE_PREFIX_PATH=$BUILDDIR_PIR/build
 cmake --build build
 ```
 
-### To Run
+## To Run
 
 ```
 cd $BUILDDIR
@@ -127,39 +127,6 @@ cd $BUILDDIR
 
 ### Sample Output for Normal Benchmark
 Running the command ```./OMRdemos 1 50 65536 612``` would get the following sample output:
-```
-+------------------------------------+
-| Benchmark Test                     |
-+------------------------------------+
-Preparing database and paramaters...
-/
-| Encryption parameters :
-|   scheme: BFV
-|   poly_modulus_degree: 2048
-|   coeff_modulus size: 60 (60) bits
-|   plain_modulus: 4169729
-\
-Pertient message indices: [ 197 246 262 323 425 487 500 555 561 564 581 589 657 667 679 744 783 821 871 970 981 1014 1021 1041 1050 1060 1100 1115 1132 1236 1254 1341 1342 1366 1411 1436 1546 1575 1596 1599 1674 1687 1743 1825 1828 1842 1855 1951 1981 2012 ]
-Database and parameters prepared.
-
-Execute OMR... 
-OMR Detector running time: 1151242 us.
-
-Execute PIR with command: ../pir/vectorized_batchpir/build/bin/vectorized_batch_pir 50 65536 612
-
-
-Begin PIR server - vectorized_bactchpir ....
-BatchPIRServer: Processed database 60 of 60
-
-Public key size: 36980074
-
-Main: All the entries matched!!
-PIR recipient time: 4 milliseconds.
-
-PIR Initialization time: 37268 milliseconds
-PIR Query generation time: 13 milliseconds
-PIR Response generation time: 5869 milliseconds
-PIR Total communication: 899 KB
 ```
 +------------------------------------+
 | Benchmark Test                     |
