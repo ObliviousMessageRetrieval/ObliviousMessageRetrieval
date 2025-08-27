@@ -1,22 +1,42 @@
-# LinOMR
+# AstronOMR
 
+This README provides step by step instructions to reproduce our Table 2 and benchmark figures in the submission.
 
 ### Abstract:
 
-Anonymous message delivery, as in privacy-preserving blockchain and private messaging applications, needs to protect recipient metadata: eavesdroppers should not be able to link messages to their recipients. This raises the question: how can untrusted servers assist in delivering the pertinent messages to each recipient, without learning which messages are addressed to whom?
+End-to-end encryption ensures message confidentiality but does not protect metadata, such as communication patterns among senders and recipients, or their identities. Oblivious Message Retrieval (OMR) is a cryptographic protocol that enables a server to help recipients retrieve their messages from a database without learning the link between messages and their recipients, thus protecting such metadata. 
 
-Recent work constructed Oblivious Message Retrieval (OMR) protocols that outsource the message detection and retrieval in a privacy-preserving way, using homomorphic encryption. Their construction exhibits significant costs in computation per message scanned (～0.1 second), as well as in the size of the associated messages (～1 kB overhead) and public keys (～132 kB).
+This paper addresses two central questions: (1) What is the precise relationship between OMR and the better-studied Private Information Retrieval (PIR)?  
+(2) Can we design OMR schemes with concrete efficiency comparable to state-of-the-art PIR protocols? 
 
-This work constructs more efficient OMR schemes, by replacing the LWE-based clue encryption of prior works with a Ring-LWE variant, and utilizing the resulting flexibility to improve several components of the scheme. We thus devise, analyze, and benchmark two protocols:
+We show that OMR with a property we call *strong detection-key-unlinkability* is at least as hard as PIR, and that existing OMR constructions already satisfy this property. This PIR-to-OMR reduction has low overhead, suggesting OMR cannot be made substantially more efficient than PIR.
 
-The first protocol focuses on improving the detector runtime, using a new retrieval circuit that can be homomorphically evaluated $15$x faster than the prior work.
-  
-The second protocol focuses on reducing the communication costs, by designing a different homomorphic decryption circuit that allows the parameter of the Ring-LWE encryption to be set such that the public key size is about 235x smaller than the prior work, and the message size is roughly 1.6x smaller. The runtime of this second construction is ～40.0 ms per message, still more than 2.5x faster than prior works.
+We then present AstronOMR, which achieves $20\times$ to $1080\times$ faster server runtime over the state-of-the-art SophOMR across realistic parameters. For $2^{19}$ messages of 612 bytes each, AstronOMR runs in only ${\sim}25$ seconds with 4 MB of communication, compared to $>1250$ seconds and 260KB for SophOMR.
+
+Crucially, AstronOMR uses batch PIR as a black-box component, which in our experiments accounts for 50--92\% of the server runtime. Thus, AstronOMR nearly matches the aforementioned lower bound concretely (for databases of $2^{16}$ to $2^{23}$ messages, each with $612$ to $3060$ bytes).
+
+- First, we establish a formal separation, showing that OMR (with a property called strong detection-key-unlinkability) is strictly stronger than PIR.
+    Furthermore, the PIR-to-OMR reduction has essentially no overhead,
+    which means that both asymptotically *and* concretely, one should expect PIR to be the performance lower bound of OMR.
+
+- Then, we present a new OMR construction, AstronOMR, which replaces the use of fully homomorphic encryption with a hybrid use of additively homomorphic encryption and batch PIR, which achieves over $20$-$315\times$ improvement in detector runtime over the state-of-the-art SophOMR (for different parameters tested).
+    For example, for $2^{19}$ messages (parameters tested in prior works),
+    AstronOMR takes only ${\sim} 25$ seconds of detector runtime and 4 megabytes of communication (compared to $> 1250$ seconds and $200$ kilobytes for SophOMR).
+    Furthermore, the batch PIR component in AstronOMR takes $50 $-$ 97\%$ of the detector runtime (depending on parameters),
+    which means that AstronOMR concretely almost matches to the lower bound.
+    Another side advantage of AstronOMR is that the detection key size is only $31$ MB compared to $142$ MB for SophOMR.
+
+
+Thus, our results provide both a theoretical foundation for understanding OMR and a practical step toward making it deployable in real-world privacy-preserving systems.
+
+
     
 
 ## Dependencies
 
-The LinOMR library relies on the following:
+Note: our scheme AstronOMR builds upon the [OMR library](https://github.com/ObliviousMessageRetrieval/) so this section is fully identical to the original library.
+
+The AstronOMR library relies on the following:
 
 - C++ build environment
 - CMake build infrastructure
@@ -42,7 +62,7 @@ sudo apt-get install libntl-dev # specify version to be 11.4.3-1build1 if not fo
 sudo apt install gitc
 sudo apt-get install unzip
 
-# With the linomr_code.zip, put it under ~/OMR and unzip it into ObliviousMessageRetrieval dir
+# With the AstronOMR_code.zip, put it under ~/OMR and unzip it into ObliviousMessageRetrieval dir
 
  # change build_path to where you want the dependency libraries installed
 OMRDIR=~/OMR  
@@ -148,38 +168,32 @@ Preparing database and paramaters...
 /
 | Encryption parameters :
 |   scheme: BFV
-|   poly_modulus_degree: 4096
+|   poly_modulus_degree: 2048
 |   coeff_modulus size: 60 (60) bits
-|   plain_modulus: 1032193
+|   plain_modulus: 4169729
 \
-Pertient message indices: [ 265 342 456 475 478 497 820 835 949 958 1078 1098 1196 1291 1317 1370 1467 1469 1552 1553 1587 2087 2369 2385 2439 2540 2582 2626 2699 2952 2970 3025 3080 3145 3183 3315 3358 3375 3385 3419 3451 3516 3585 3586 3628 3725 3799 3828 3906 4067 ]
+Pertient message indices: [ 197 246 262 323 425 487 500 555 561 564 581 589 657 667 679 744 783 821 871 970 981 1014 1021 1041 1050 1060 1100 1115 1132 1236 1254 1341 1342 1366 1411 1436 1546 1575 1596 1599 1674 1687 1743 1825 1828 1842 1855 1951 1981 2012 ]
 Database and parameters prepared.
 
-After a*sk... 
-After aggregating and transform ntt... 
-After subtracting from b... 
+Execute OMR... 
+OMR Detector running time: 1151242 us.
 
-Detector running time: 185051 us.
-
-YOU SURE????????? 228
-OMR Detector running time: 185279 us.
-Decoded pertinent msgs: ---------------
-265, 342, 456, 475, 478, 497, 820, 835, 949, 958, 1078, 1098, 1196, 1291, 1317, 1370, 1467, 1469, 1552, 1553, 1587, 2087, 2369, 2385, 2439, 2540, 2582, 2626, 2699, 2952, 2970, 3025, 3080, 3145, 3183, 3315, 3358, 3375, 3385, 3419, 3451, 3516, 3585, 3586, 3628, 3725, 3799, 3828, 3906, 4067, 
-Execute PIR: ../pir/vectorized_batchpir/build/bin/vectorized_batch_pir 50 65536 612
+Execute PIR with command: ../pir/vectorized_batchpir/build/bin/vectorized_batch_pir 50 65536 612
 
 
 Begin PIR server - vectorized_bactchpir ....
 BatchPIRServer: Processed database 60 of 60
 
-Public key size: 36980626
+Public key size: 36980074
 
 Main: All the entries matched!!
 PIR recipient time: 4 milliseconds.
 
-PIR Initialization time: 37008 milliseconds
+PIR Initialization time: 37268 milliseconds
 PIR Query generation time: 13 milliseconds
-PIR Response generation time: 5736 milliseconds
+PIR Response generation time: 5869 milliseconds
 PIR Total communication: 899 KB
+```
 
 ### To reproduce Table 2:
 ```
