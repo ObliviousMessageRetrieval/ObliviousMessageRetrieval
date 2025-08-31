@@ -46,7 +46,7 @@ std::tuple<SecretKey, srPKEpk, vector<Ciphertext>> init_deaddrop()
     auto pk_clue = srPKEGeneratePublicKey(params, sk);
 
     // Create clueDB
-    int numOfTransactions = 131072;
+    int numOfTransactions = 524288;
     int num_of_pertinent_msgs = 0;
     int party_size_local = 1;
     vector<int> pertinentMsgIndices;
@@ -103,8 +103,8 @@ srPKECiphertext gen_clue(const srPKEpk &pk_clue)
 // Generates encrypted digest over the whole DB
 Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
 {
-    auto numOfTransactions = 131072;
-    auto numcores = 4;
+    auto numOfTransactions = 524288;
+    auto numcores = 1;
     auto poly_modulus_degree = ddctx::parms().poly_modulus_degree();
     auto params = srPKEParam();
 
@@ -171,23 +171,6 @@ Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
         std::cout << "rotating switching key precomputation: " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count()
         << " s\n";
 
-        // Measure total memory size of rotated_switchingKey in GB
-        {
-            size_t total_bytes = 0;
-            for (int l = 0; l < params.ell; l++)
-            {
-                for (int i = 0; i < tempn; i++)
-                {
-                    std::stringstream ss;
-                    rotated_switchingKey[l][i].save(ss);
-                    total_bytes += ss.str().size();
-                }
-            }
-            double total_gb = static_cast<double>(total_bytes) / (1024.0 * 1024.0 * 1024.0);
-            std::cout << "rotated_switchingKey total size ≈ " << total_gb << " GB\n";
-        }
-        // Delete after finishing using
-
         start = std::chrono::high_resolution_clock::now();
 
         NTL::SetNumThreads(numcores); 
@@ -213,7 +196,7 @@ Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
         }
         NTL_EXEC_RANGE_END;
 
-        std::cout << "generating encrypted indices: " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count()
+        std::cout << "generating encrypted indices         : " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count()
         << " s\n";
 
         for (int l = 0; l < params.ell; l++)
