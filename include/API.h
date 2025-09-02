@@ -46,7 +46,7 @@ std::tuple<SecretKey, srPKEpk, vector<Ciphertext>> init_deaddrop()
     auto pk_clue = srPKEGeneratePublicKey(params, sk);
 
     // Create clueDB
-    int numOfTransactions = 524288;
+    int numOfTransactions = 32768;
     int num_of_pertinent_msgs = 0;
     int party_size_local = 1;
     vector<int> pertinentMsgIndices;
@@ -103,7 +103,7 @@ srPKECiphertext gen_clue(const srPKEpk &pk_clue)
 // Generates encrypted digest over the whole DB
 Ciphertext gen_encrypted_digest(const vector<Ciphertext> &pk_detect)
 {
-    auto numOfTransactions = 524288;
+    auto numOfTransactions = 32768;
     auto numcores = 1;
     auto poly_modulus_degree = ddctx::parms().poly_modulus_degree();
     auto params = srPKEParam();
