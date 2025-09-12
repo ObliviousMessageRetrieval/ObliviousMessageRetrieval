@@ -36,9 +36,8 @@ void EvalMultMany_inpace(vector<Ciphertext>& ciphertexts, const RelinKeys &relin
 }
 
 inline
-void EvalMultMany_inpace_modImprove(vector<Ciphertext>& ciphertexts, const RelinKeys &relin_keys, const SEALContext& context, SecretKey& sk){ // TODOmulti: can be multithreaded easily
+void EvalMultMany_inpace_modImprove(vector<Ciphertext>& ciphertexts, const RelinKeys &relin_keys, const SEALContext& context){ // TODOmulti: can be multithreaded easily
 	Evaluator evaluator(context);
-	Decryptor decryptor(context, sk);
 	int counter = 0;
 
 	while(ciphertexts.size() != 1){
@@ -1079,7 +1078,7 @@ Ciphertext raisePowerToPrime(const SEALContext& context, const RelinKeys &relin_
 
 
 // get the x^2 as input
-void FastRangeCheck_Random(SecretKey& sk, Ciphertext& output, const Ciphertext& input, int degree, const RelinKeys &relin_keys,
+void FastRangeCheck_Random(Ciphertext& output, const Ciphertext& input, int degree, const RelinKeys &relin_keys,
 						   const SEALContext& context, const vector<uint64_t>& rangeCheckIndices, const int firstLevel,
 						   const int secondLevel, map<int, bool>& firstLevelMod, map<int, bool>& secondLevelMod,
 						   bool default_param_set = true, const int range_check_range = range_check_r) {
@@ -1088,7 +1087,6 @@ void FastRangeCheck_Random(SecretKey& sk, Ciphertext& output, const Ciphertext& 
 
 	Evaluator evaluator(context);
 	BatchEncoder batch_encoder(context);
-	Decryptor decryptor(context, sk);
 
 	Plaintext plainInd;
 	plainInd.resize(degree);
@@ -1110,7 +1108,7 @@ void FastRangeCheck_Random(SecretKey& sk, Ciphertext& output, const Ciphertext& 
 			evaluator.add_plain_inplace(terms[i], plainInd);
 		}
 
-		EvalMultMany_inpace_modImprove(terms, relin_keys, context, sk);
+		EvalMultMany_inpace_modImprove(terms, relin_keys, context);
 		output = terms[0];
 
 		for(int i = 0; i < (int) terms.size(); i++){
@@ -1210,7 +1208,7 @@ Ciphertext rangeCheck_OPVW(SecretKey& sk, vector<Ciphertext>& output, const Reli
 			// cout << "============================= check before\n" << tt << endl;
 
 			s1 = chrono::high_resolution_clock::now();
-			FastRangeCheck_Random(sk, res[j], output[j], degree, relin_keys, context, rangeCheckIndices_opt_B,
+			FastRangeCheck_Random(res[j], output[j], degree, relin_keys, context, rangeCheckIndices_opt_B,
 								  100, 240, level_mod_1, level_mod_2, default_param_set);
 			e1 = chrono::high_resolution_clock::now();
 			range_time += chrono::duration_cast<chrono::microseconds>(e1 - s1).count();
@@ -1253,7 +1251,7 @@ Ciphertext rangeCheck_OPVW(SecretKey& sk, vector<Ciphertext>& output, const Reli
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void computeBplusAS_dos(SecretKey& sk, vector<Ciphertext>& output, const vector<srPKECiphertext>& toPack,
+void computeBplusAS_dos(vector<Ciphertext>& output, const vector<srPKECiphertext>& toPack,
 						vector<vector<Ciphertext>>& switchingKey, const GaloisKeys& gal_keys,
 						const SEALContext& context, const srPKEParam& param) {
 	MemoryPoolHandle my_pool = MemoryPoolHandle::New(true);
@@ -1264,7 +1262,6 @@ void computeBplusAS_dos(SecretKey& sk, vector<Ciphertext>& output, const vector<
 
 	Evaluator evaluator(context);
 	BatchEncoder batch_encoder(context);
-	Decryptor decryptor(context, sk);
 	
 	size_t slot_count = batch_encoder.slot_count();
 	if(toPack.size() > slot_count){
@@ -1348,11 +1345,10 @@ void computeBplusAS_dos(SecretKey& sk, vector<Ciphertext>& output, const vector<
 	MemoryManager::SwitchProfile(std::move(old_prof));
 }
 
-Ciphertext rangeCheck_dos(SecretKey& sk, vector<Ciphertext>& output, const RelinKeys &relin_keys, const size_t& degree, 
+Ciphertext rangeCheck_dos(vector<Ciphertext>& output, const RelinKeys &relin_keys, const size_t& degree, 
 						  const SEALContext& context, const srPKEParam& param){
 	BatchEncoder batch_encoder(context);
 	Evaluator evaluator(context);
-	Decryptor decryptor(context, sk);
 
 	vector<Ciphertext> res(param.ell);
 
@@ -1382,7 +1378,7 @@ Ciphertext rangeCheck_dos(SecretKey& sk, vector<Ciphertext>& output, const Relin
 			map<int, bool> level_mod_2 = {{2, false}, {8, false}, {32, false}, {128, false}};
 
 			s1 = chrono::high_resolution_clock::now();
-			FastRangeCheck_Random(sk, res[j], output[j], degree, relin_keys, context, rangeCheckIndices_opt_B,
+			FastRangeCheck_Random(res[j], output[j], degree, relin_keys, context, rangeCheckIndices_opt_B,
 				  				  100, 240, level_mod_1, level_mod_2, true, range_check_r_dos);
 			evaluator.mod_switch_to_next_inplace(res[j]);
 			e1 = chrono::high_resolution_clock::now();

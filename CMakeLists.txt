@@ -27,6 +27,7 @@ option( BUILD_STATIC "Set to ON to include static versions of the library" OFF)
 find_package(Palisade REQUIRED)
 find_package(SEAL REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(Threads REQUIRED)
 
 set( CMAKE_CXX_FLAGS ${PALISADE_CXX_FLAGS} )
 
@@ -49,6 +50,8 @@ else()
     link_libraries( ${PALISADE_SHARED_LIBRARIES} )
 endif()
 
-add_executable( OMRdemos main.cpp )
+add_executable( http_server http_server.cpp )
+add_executable( banana_demo banana.cpp )
 
-target_link_libraries(OMRdemos SEAL::seal ntl m gmp OpenSSL::Crypto)
+target_link_libraries(http_server Threads::Threads SEAL::seal ntl m gmp OpenSSL::Crypto)
+target_link_libraries(banana_demo Threads::Threads SEAL::seal ntl m gmp OpenSSL::Crypto)
