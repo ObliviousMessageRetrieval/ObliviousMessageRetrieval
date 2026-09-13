@@ -1279,29 +1279,6 @@ void computeBplusAS_dos(SecretKey& sk, vector<Ciphertext>& output, const vector<
 
 	for(int i = 0; i < tempn; i++){
 		for(int l = 0; l < param.ell; l++){
-			/* time_start = chrono::high_resolution_clock::now(); */
-			/* Ciphertext sks; */
-			/* loadSwitchingKey(context, sks, l*tempn + i); */
-			/* /\* sks.parms_id_ = context.first_parms_id(); *\/ */
-
-			/* /\* evaluator.transform_from_ntt_inplace(sks); *\/ */
-			/* /\* decryptor.decrypt(sks, ppt); *\/ */
-			/* /\* batch_encoder.decode(ppt, test); *\/ */
-			/* /\* for (int i = 0; i < 10; i++) { *\/ */
-			/* /\*   cout << test[i] << " "; *\/ */
-			/* /\* } *\/ */
-			/* /\* cout << endl; *\/ */
-			/* /\* decryptor.decrypt(switchingKey[l], ppt); *\/ */
-				/* /\* batch_encoder.decode(ppt, test); *\/ */
-				/* /\* for (int i = 0; i < 10; i++) { *\/ */
-				/* /\*   cout << test[i] << " "; *\/ */
-				/* /\* } *\/ */
-				/* /\* cout << endl << "*******************************************************\n"; *\/ */
-			/* /\* evaluator.transform_to_ntt_inplace(sks); *\/ */
-
-			/* time_end = chrono::high_resolution_clock::now(); */
-			/* load_time += chrono::duration_cast<chrono::microseconds>(time_end - time_start).count(); */
-		
 			vector<uint64_t> vectorOfInts(toPack.size());
 			for(int j = 0; j < (int) toPack.size(); j++){
 				int the_index = (i + j) % tempn;
